@@ -6,7 +6,7 @@
 
 ### Confirmed functionalities
 - SIM5320: SMS, HTTP(S)
-- SIM7000: SMS, HTTP(S), GPS, FTP, MQTT using TCP & dedicated commands, sleep mode & e-DRX (~1.5mA), ultra low-power power down mode (~7.4uA)
+- SIM7000: SMS, HTTP(S), GPS, FTP, MQTT using TCP & dedicated commands, sleep mode & e-DRX, power down mode
 - SIM7070: SMS, HTTP, GPS
 - SIM7500: SMS, HTTP(S), GPS, voice calling
 
