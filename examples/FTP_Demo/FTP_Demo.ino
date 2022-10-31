@@ -14,7 +14,7 @@
  *  License: GNU GPL v3.0
  */
 
-#include "Adafruit_FONA.h" // https://github.com/botletics/SIM7000-LTE-Shield/tree/master/Code
+#include "BotleticsSIM7000.h" // https://github.com/botletics/SIM7000-Shield-Library/tree/master/src
 #include <SPI.h>
 #include <SD.h>
 

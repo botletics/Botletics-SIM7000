@@ -10,7 +10,7 @@
  *  License: GNU GPL v3.0
  */
 
-#include "Adafruit_FONA.h" // https://github.com/botletics/SIM7000-LTE-Shield/tree/master/Code
+#include "BotleticsSIM7000.h" // https://github.com/botletics/SIM7000-Shield-Library/tree/master/src
 
 // You don't need the following includes if you're not using MQTT
 // You can find the Adafruit MQTT library here: https://github.com/adafruit/Adafruit_MQTT_Library
