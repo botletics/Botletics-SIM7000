@@ -9,6 +9,8 @@
  *  License: GNU GPL v3.0
  */
 
+#include "BotleticsSIM7000.h" // https://github.com/botletics/SIM7000-Shield-Library/tree/master/src
+
 /******* ORIGINAL ADAFRUIT FONA LIBRARY TEXT *******/
 /***************************************************
   This is an example for our Adafruit FONA Cellular Module
@@ -29,7 +31,7 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
-#include "Adafruit_FONA.h" // https://github.com/botletics/SIM7000-LTE-Shield/tree/master/Code
+// #include "Adafruit_FONA.h" // https://github.com/botletics/SIM7000-LTE-Shield/tree/master/Code
 
 #if defined(ARDUINO_SAMD_ZERO) && defined(SERIAL_PORT_USBVIRTUAL)
   // Required for Serial on Zero based boards
