@@ -18,7 +18,7 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
-#include "Adafruit_FONA.h"
+#include "BotleticsSIM7000.h"
 
 #ifdef SSL_FONA
   char *server_CA_FONA;
