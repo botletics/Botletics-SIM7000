@@ -4,9 +4,15 @@
  *  sure to replace Adafruit IO credentials with your own, and change the names of the
  *  feeds you want to use to publish and subscribe.
  *  
+ *  NOTE: This sketch has Adafruit library dependencies. In order for this sketch to
+ *  work, manually install the Botletics version of the Adafruit_FONA library
+ *  (https://github.com/botletics/SIM7000-LTE-Shield/releases) to replace
+ *  Adafruit's FONA library. Then install the Botletics-SIM7000 library from the
+ *  Arduino library manager.
+ *  
  *  Author: Timothy Woo (www.botletics.com)
  *  Github: https://github.com/botletics/SIM7000-LTE-Shield
- *  Last Updated: 10/3/2022
+ *  Last Updated: 11/2/2022
  *  License: GNU GPL v3.0
  */
 
@@ -93,8 +99,8 @@ SoftwareSerial *modemSerial = &modemSS;
 #define AIO_USERNAME    "yourUsernameHere"
 #define AIO_KEY         "YourAIOkeyHere"
 
-// Setup the FONA MQTT class by passing in the fona class and MQTT server and login details.
-Adafruit_MQTT_FONA mqtt(&fona, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+// Setup the FONA MQTT class by passing in the modem class and MQTT server and login details.
+Adafruit_MQTT_FONA mqtt(&modem, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 
 // How many transmission failures in a row we're OK with before reset
 uint8_t txfailures = 0;  
