@@ -174,7 +174,7 @@ class Adafruit_FONA : public FONAStreamType {
   uint8_t getNTPstatus();
   boolean enableNTPTimeSync(boolean onoff, FONAFlashStringPtr ntpserver=0);
   boolean getTime(char *buff, uint16_t maxlen);
-  
+
   // RTC
   boolean enableRTC(uint8_t i);
   boolean readRTC(uint8_t *year, uint8_t *month, uint8_t *date, uint8_t *hr, uint8_t *min, uint8_t *sec, int8_t *tz);

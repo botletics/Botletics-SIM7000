@@ -69,7 +69,7 @@ boolean Adafruit_FONA::begin(Stream &port) {
     if (sendCheckReply(F("AT"), ok_reply))
       break;
     while (mySerial->available()) mySerial->read();
-    if (sendCheckReply(F("AT"), F("AT"))) 
+    if (sendCheckReply(F("AT"), F("AT")))
       break;
     delay(500);
     timeout-=500;
@@ -223,7 +223,7 @@ void Adafruit_FONA::powerOn(uint8_t FONA_PWRKEY) {
     delay(1100); // At least 1s
   else if (_type == SIM7500 || _type == SIM7600)
     delay(500);
-  
+
   digitalWrite(FONA_PWRKEY, HIGH);
 }
 
@@ -237,7 +237,7 @@ boolean Adafruit_FONA::powerDown(void) {
     if (! sendCheckReply(F("AT+CPOWD=1"), F("NORMAL POWER DOWN"))) // Normal power off
         return false;
   }
-  
+
 
   return true;
 }
@@ -352,7 +352,7 @@ boolean Adafruit_FONA::enablePSM(bool onoff) {
 // 010 6min
 // 111 disabled
 
-// Note: Network decides the final value of the TAU and active time. 
+// Note: Network decides the final value of the TAU and active time.
 boolean Adafruit_FONA::enablePSM(bool onoff, char * TAU_val, char * activeTime_val) { // AT+CPSMS command
     if (strlen(activeTime_val) > 8) return false;
     if (strlen(TAU_val) > 8) return false;
@@ -639,7 +639,7 @@ boolean Adafruit_FONA::callPhone(char *number) {
 uint8_t Adafruit_FONA::getCallStatus(void) {
   uint16_t phoneStatus;
 
-  if (! sendParseReply(F("AT+CPAS"), F("+CPAS: "), &phoneStatus)) 
+  if (! sendParseReply(F("AT+CPAS"), F("+CPAS: "), &phoneStatus))
     return FONA_CALL_FAILED; // 1, since 0 is actually a known, good reply
 
   return phoneStatus;  // 0 ready, 2 unknown, 3 ringing, 4 call in progress
@@ -733,7 +733,7 @@ int8_t Adafruit_FONA::getNumSMS(void) {
   if (! sendCheckReply(F("AT+CMGF=1"), ok_reply)) return -1;
 
   // ask how many sms are stored
-  if (sendParseReply(F("AT+CPMS?"), F(FONA_PREF_SMS_STORAGE ","), &numsms)) 
+  if (sendParseReply(F("AT+CPMS?"), F(FONA_PREF_SMS_STORAGE ","), &numsms))
     return numsms;
   if (sendParseReply(F("AT+CPMS?"), F("\"SM\","), &numsms))
     return numsms;
@@ -772,7 +772,7 @@ boolean Adafruit_FONA::readSMS(uint8_t i, char *smsbuff,
 
   DEBUG_PRINTLN(replybuffer);
 
-  
+
   if (! parseReply(F("+CMGR:"), &thesmslen, ',', 11)) {
     *readlen = 0;
     return false;
@@ -1199,7 +1199,7 @@ boolean Adafruit_FONA::getGPS(float *lat, float *lon, float *speed_kph, float *h
     if (GPSstatus() < 2)
       return false;
   }
-  
+
   // grab the mode 2^5 gps csv from the sim808
   uint8_t res_len = getGPS(32, gpsbuffer, 120);
 
@@ -1307,11 +1307,11 @@ boolean Adafruit_FONA::getGPS(float *lat, float *lon, float *speed_kph, float *h
     if ((year != NULL) && (month != NULL) && (day != NULL) && (hour != NULL) && (min != NULL) && (sec != NULL)) {
       char *date = strtok(NULL, ",");
       if (! date) return false;
-      
+
       // Seconds
       char *ptr = date + 12;
       *sec = atof(ptr);
-      
+
       // Minutes
       ptr[0] = 0;
       ptr = date + 10;
@@ -1628,7 +1628,7 @@ boolean Adafruit_FONA::enableGPRS(boolean onoff) {
       // } // UNCOMMENT FOR LTE ONLY!
 
       delay(200); // This seems to help the next line run the first time
-      
+
       // set bearer profile access point name
       if (apn) {
         // Send command AT+SAPBR=3,1,"APN","<apn value>" where <apn value> is the configured APN value.
@@ -1653,20 +1653,20 @@ boolean Adafruit_FONA::enableGPRS(boolean onoff) {
 
           DEBUG_PRINT(F("\t---> ")); DEBUG_PRINT(F("AT+CSTT=\""));
           DEBUG_PRINT(apn);
-          
+
           if (apnusername) {
             DEBUG_PRINT("\",\"");
-            DEBUG_PRINT(apnusername); 
+            DEBUG_PRINT(apnusername);
           }
           if (apnpassword) {
             DEBUG_PRINT("\",\"");
-            DEBUG_PRINT(apnpassword); 
+            DEBUG_PRINT(apnpassword);
           }
           DEBUG_PRINTLN("\"");
-          
+
           if (! expectReply(ok_reply)) return false;
         // } // UNCOMMENT FOR LTE ONLY!
-      
+
         // set username/password
         if (apnusername) {
           // Send command AT+SAPBR=3,1,"USER","<user>" where <user> is the configured APN username.
@@ -1788,7 +1788,7 @@ int8_t Adafruit_FONA::getNetworkType(char *typeStringBuffer, size_t bufferLength
 
   if (! sendParseReply(F("AT+CNSMOD?"), F("+CNSMOD:"), &type, ',', 1))
     return -1;
-  
+
   if (typeStringBuffer != NULL)
   {
     switch (type)
@@ -1815,7 +1815,7 @@ int8_t Adafruit_FONA::getNetworkType(char *typeStringBuffer, size_t bufferLength
   }
 
   return (int8_t)type;
-} 
+}
 
 // Returns bearer status
 // -1 Command returned with an error
@@ -1952,7 +1952,7 @@ boolean Adafruit_FONA::openWirelessConnection(bool onoff) {
     else {
       if (! sendCheckReplyQuoted(F("AT+CNACT=1,"), apn, ok_reply)) return false;
     }
-    
+
     readline();
     DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer);
 
@@ -1968,11 +1968,11 @@ boolean Adafruit_FONA::wirelessConnStatus(void) {
   getReply(F("AT+CNACT?"));
   // Format of response:
   // +CNACT: <status>,<ip_addr>  (ex.SIM7000)
-  // +CNACT: <pdpidx>,<status>,<ip_addr>  (ex.SIM7070)  
+  // +CNACT: <pdpidx>,<status>,<ip_addr>  (ex.SIM7070)
   if(_type == SIM7070) {
     if (strstr(replybuffer, "+CNACT: 0,1") == NULL) return false;
   } else {
-    if (strstr(replybuffer, "+CNACT: 1") == NULL) return false; 
+    if (strstr(replybuffer, "+CNACT: 1") == NULL) return false;
   }
   return true;
 }
@@ -2086,11 +2086,11 @@ boolean Adafruit_FONA::postData(const char *server, uint16_t port, const char *c
 
   DEBUG_PRINTLN(F("Waiting 1s to ensure connection..."));
   delay(1000);
-  
+
   // Construct the AT command based on function parameters
   char auxStr[200];
   uint8_t connTypeNum = 1;
-  
+
   if (strcmp(connType, "HTTP") == 0) {
     connTypeNum = 1;
   }
@@ -2150,7 +2150,7 @@ boolean Adafruit_FONA::postData(const char *server, uint16_t port, const char *c
       if (! sendCheckReply(body, ok_reply, 10000))
         return false;
     }
-    
+
     // if (! sendCheckReply(dataBuff, ok_reply, 10000))
     //   return false;
 
@@ -2165,7 +2165,7 @@ boolean Adafruit_FONA::postData(const char *server, uint16_t port, const char *c
   }
 
   delay(1000);
-  
+
   if (_type == SIM5320A || _type == SIM5320E) {
     if (! sendCheckReply(F("AT+CHTTPSSEND"), ok_reply, 10000))
       return false;
@@ -2191,7 +2191,7 @@ boolean Adafruit_FONA::postData(const char *server, uint16_t port, const char *c
     flushInput();
     DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer);
   }
-  
+
   // Close HTTP/HTTPS session
   sendCheckReply(F("AT+CHTTPSCLSE"), ok_reply, 10000);
   // if (! sendCheckReply(F("AT+CHTTPSCLSE"), ok_reply, 10000))
@@ -2215,7 +2215,7 @@ boolean Adafruit_FONA_LTE::HTTP_connect(const char *server) {
   char urlBuff[100];
 
   sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
-  
+
   if (SSL_FONA) {
     sendCheckReply(F("AT+CSSLCFG=\"sslversion\",1,3"), ok_reply);
     sendCheckReply(F("AT+SHSSL=1,\"\""), ok_reply, 10000);
@@ -2304,7 +2304,7 @@ boolean Adafruit_FONA_LTE::HTTP_POST(const char *URI, const char *body, uint8_t 
   //   sprintf(cmdBuff, "AT+SHBOD=\"%s\",%i", body, bodylen);
   //   if (! sendCheckReply(cmdBuff, ok_reply, 10000)) return false;
   // }
-  
+
   memset(cmdBuff, 0, sizeof(cmdBuff)); // Clear URI char array
   sprintf(cmdBuff, "AT+SHREQ=\"%s\",3", URI);
 
@@ -2506,7 +2506,7 @@ const char * Adafruit_FONA::FTP_GET(const char* fileName, const char* filePath, 
     sprintf(auxStr, "AT+FTPGET=2,%i", numBytes);
     getReply(auxStr, 10000);
     if (strstr(replybuffer, "+FTPGET: 2,") == NULL) return err;
-  } 
+  }
   else {
     sprintf(auxStr, "AT+FTPEXTGET=2,%i,10000", numBytes);
     getReply(auxStr, 10000);
@@ -2575,7 +2575,7 @@ boolean Adafruit_FONA::FTP_PUT(const char* fileName, const char* filePath, char*
   uint16_t maxlen;
   readline(10000);
   DEBUG_PRINT(F("\t<--- ")); DEBUG_PRINTLN(replybuffer);
-  
+
   // Use regular FTPPUT method if there is less than 1024 bytes of data to send
   if (numBytes < 1024) {
     if (! parseReply(F("+FTPPUT: 1,1"), &maxlen, ',', 1))
@@ -2670,7 +2670,7 @@ void Adafruit_FONA::mqtt_connect_message(const char *protocol, byte *mqtt_messag
   else if (username_length == 0) {  // Only has password
     mqtt_message[5 + protocol_length] = 66;                   // Connection flag with password only (01000010)
   }
-  
+
   mqtt_message[6 + protocol_length] = 0;                      // Keep-alive time MSB
   mqtt_message[7 + protocol_length] = 15;                     // Keep-alive time LSB
   mqtt_message[8 + protocol_length] = 0;                      // Client ID length MSB
@@ -2690,7 +2690,7 @@ void Adafruit_FONA::mqtt_connect_message(const char *protocol, byte *mqtt_messag
       mqtt_message[12 + protocol_length + ID_length + i] = username[i];
     }
   }
-  
+
   // Password
   if (password_length > 0) {
     mqtt_message[12 + protocol_length + ID_length + username_length] = 0;                     // password length MSB
@@ -2729,10 +2729,10 @@ void Adafruit_FONA::mqtt_subscribe_message(byte *mqtt_message, const char *topic
 
   mqtt_message[0] = 130;                // MQTT Message Type SUBSCRIBE
   mqtt_message[1] = 5 + topic_length;   // Remaining length
-  mqtt_message[2] = 0;                  // Packet ID MSB   
+  mqtt_message[2] = 0;                  // Packet ID MSB
   mqtt_message[3] = 1;                  // Packet ID LSB
-  mqtt_message[4] = 0;                  // Topic length MSB      
-  mqtt_message[5] = topic_length;       // Topic length LSB          
+  mqtt_message[4] = 0;                  // Topic length MSB
+  mqtt_message[5] = topic_length;       // Topic length LSB
 
   // Topic
   for(i = 0; i < topic_length; i++) {
@@ -2847,7 +2847,7 @@ boolean Adafruit_FONA_LTE::MQTT_setParameter(const char* paramTag, const char* p
   //   sprintf(cmdStr, "AT+SMCONF=\"%s\",%s", paramTag, paramValue); // Unquoted paramValue
   //   if (! sendCheckReply(cmdStr, ok_reply)) return false;
   // }
-  
+
   return true;
 }
 
@@ -2953,65 +2953,65 @@ boolean Adafruit_FONA::UDPconnect(char *server, uint16_t port) {
 boolean Adafruit_FONA::TCPconnect(char *server, uint16_t port) {
   if (SSL_FONA) {
     flushInput();
-    
+
     //  Report Mobile Equipment Error
     if (! sendCheckReply(F("AT+CMEE=2"), ok_reply) ) return false;
-    
+
     // Check config error
     if (! sendCheckReply(F("AT+CMEE?"), F("+CMEE: 2"), 20000) ) return false;
-    
+
     //Set TCP/UDP Identifier
     if (! sendCheckReply(F("AT+CACID=1"), ok_reply) ) return false;
     CID_CA_FONA = 1;
-    
+
     //Configure SSL Parameters of a Context Identifier
     if (! sendCheckReply(F("AT+CSSLCFG=\"sslversion\",1,3"), ok_reply) ) return false;
     if (! sendCheckReply(F("AT+CSSLCFG=\"protocol\",1,1"), ok_reply) ) return false;
     mySerial->println(F("AT+CSSLCFG=\"ctxindex\",1"));
     readline();
     if (! expectReply(ok_reply)) return false;
-    
+
     if (! sendCheckReply(F("AT+CFSINIT"), ok_reply) ) return false;
-    
+
     //Load CA
     mySerial->print(F("AT+CFSWFILE=3,\"ca.crt\",0,\""));
     mySerial->print(strlen(rootCA_FONA));
     mySerial->print(F("\",\""));
     mySerial->print(5000);
     mySerial->println(F("\""));
-    
+
     if (! expectReply(F("DOWNLOAD"))) return false;
-    
+
     mySerial->print(rootCA_FONA);
     readline(2000, true);
     if (!((replybuffer[0] == 'O') && (replybuffer[1] == 'K'))) return false;
-    
-    
+
+
     if (! sendCheckReply(F("AT+CFSTERM"), ok_reply) ) return false;
     if (! sendCheckReply(F("AT+CFSINIT"), ok_reply) ) return false;
-    
+
     char CF[20] = "+CFSGFIS: ";
     itoa((int)strlen(rootCA_FONA), CF+10, 10);
-    
+
     // if (! sendCheckReply(F("AT+CFSGFIS=3,\"ca.crt\""), (char*)CF, 300)) return false; // Get cert file size
     if (! sendCheckReply(F("AT+CFSTERM"), ok_reply) ) return false;
 
     if (! sendCheckReply(F("AT+CSSLCFG=\"convert\",2,\"ca.crt\""), ok_reply) ) return false;
-    
+
     //Set SSL certificate and timeout parameters
     if (! sendCheckReply(F("AT+CASSLCFG=1,\"cacert\",\"ca.crt\""), ok_reply) ) return false;
     if (! sendCheckReply(F("AT+CASSLCFG=1,\"ssl\",1"), ok_reply) ) return false;
     if (! sendCheckReply(F("AT+CASSLCFG=1,\"crindex\",1"), ok_reply) ) return false;
     if (! sendCheckReply(F("AT+CASSLCFG=1,\"protocol\",0"), ok_reply) ) return false;
-    
+
     // if (! openWirelessConnection(true)) return false;
     // if (! wirelessConnStatus()) return false;
-    
+
     char server_f[100];
     strcpy(server_f,server);
     server_CA_FONA = server_f;
     port_CA_FONA = port;
-    
+
     mySerial->print(F("AT+CAOPEN=1,\""));
     mySerial->print(server);
     mySerial->print(F("\",\""));
@@ -3058,11 +3058,11 @@ boolean Adafruit_FONA::TCPclose(void) {
 }
 
 boolean Adafruit_FONA::TCPconnected(void) {
-  if (SSL_FONA) {  
+  if (SSL_FONA) {
     char CA[100] = "+CAOPEN: ";
     itoa(CID_CA_FONA, CA+9, 10);
-    strcat(CA,",\""); 
-    strcat(CA,server_CA_FONA);  
+    strcat(CA,",\"");
+    strcat(CA,server_CA_FONA);
     strcat(CA,"\",");
     char port_CA_FONA_p[10];
     itoa((int)port_CA_FONA,port_CA_FONA_p, 10);
@@ -3100,7 +3100,7 @@ boolean Adafruit_FONA::TCPsend(char *packet, uint8_t len) {
     mySerial->print(len);
     mySerial->println(F("\""));
     readline();
-  } 
+  }
   else {
     mySerial->print(F("AT+CIPSEND="));
     mySerial->println(len);
