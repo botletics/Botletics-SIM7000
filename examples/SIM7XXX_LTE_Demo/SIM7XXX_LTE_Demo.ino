@@ -31,7 +31,7 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
-// #include "Adafruit_FONA.h"
+// #include "Botletics_modem.h"
 
 // Define *one* of the following lines:
 #define SIMCOM_7000
@@ -41,7 +41,7 @@
 
 #if defined(SIMCOM_7000) || defined(SIMCOM_7070)
   // For botletics SIM7000/7070 shield
-  #define FONA_PWRKEY 6
+  #define BOTLETICS_PWRKEY 6
   #define FONA_RST 7 // No RST pin for SIM7070
   //#define FONA_DTR 8 // Connect with solder jumper
   //#define FONA_RI 9 // Need to enable via AT commands
@@ -51,7 +51,7 @@
   
 #elif defined(SIMCOM_7500) || defined(SIMCOM_7600)
 // For botletics SIM7500 shield
-  #define FONA_PWRKEY 6
+  #define BOTLETICS_PWRKEY 6
   #define FONA_RST 7
   //#define FONA_DTR 9 // Connect with solder jumper
   //#define FONA_RI 8 // Need to enable via AT commands
@@ -81,7 +81,7 @@ SoftwareSerial *fonaSerial = &fonaSS;
 //#include <HardwareSerial.h>
 //HardwareSerial fonaSS(1);
 
-Adafruit_FONA_LTE fona = Adafruit_FONA_LTE();
+Botletics_modem_LTE fona = Botletics_modem_LTE();
 
 uint8_t readline(char *buff, uint8_t maxbuff, uint16_t timeout = 0);
 uint8_t type;
@@ -95,7 +95,7 @@ void setup() {
   
   // Turn on the module by pulsing PWRKEY low for a little bit
   // This amount of time depends on the specific module that's used
-  fona.powerOn(FONA_PWRKEY);
+  fona.powerOn(BOTLETICS_PWRKEY);
 
   Serial.begin(9600);
   Serial.println(F("SIM7XXX Demo"));
@@ -814,7 +814,7 @@ void loop() {
             // fona.HTTP_addHeader("Accept", "*/*, 3);
             
             // Connect to server
-            // If https:// is used, #define SSL_FONA 1 in Adafruit_FONA.h
+            // If https:// is used, #define BOTLETICS_SSL 1 in Botletics_modem.h
             if (! fona.HTTP_connect("http://dweet.io")) {
               Serial.println(F("Failed to connect to server..."));
               break;

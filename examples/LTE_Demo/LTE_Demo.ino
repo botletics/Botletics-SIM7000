@@ -35,7 +35,7 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
-//#include "Adafruit_FONA.h"
+//#include "Botletics_modem.h"
 
 // Define *one* of the following lines:
 //#define SIMCOM_2G // SIM800/808/900/908, etc.
@@ -46,19 +46,19 @@
 //#define SIMCOM_7600
 
 // For TinySine SIM5320 shield
-//#define FONA_PWRKEY 8
+//#define BOTLETICS_PWRKEY 8
 //#define FONA_RST 9
 //#define FONA_TX 2 // Microcontroller RX (note: won't work on Mega)
 //#define FONA_RX 3 // Microcontroller TX
 
 // ESP8266 + SIM7000 shield
-//#define FONA_PWRKEY 14 // D5 on NodeMCU
+//#define BOTLETICS_PWRKEY 14 // D5 on NodeMCU
 //#define FONA_RST 12 // D6 on NodeMCU
 //#define FONA_TX 4 // D2 on NodeMCU, microcontroller RX
 //#define FONA_RX 5 // D1 on NodeMCU, microcontroller TX
 
 // For botletics SIM7000 shield
-#define FONA_PWRKEY 6
+#define BOTLETICS_PWRKEY 6
 #define FONA_RST 7
 //#define FONA_DTR 8 // Connect with solder jumper
 //#define FONA_RI 9 // Need to enable via AT commands
@@ -67,7 +67,7 @@
 //#define T_ALERT 12 // Connect with solder jumper
 
 // For botletics SIM7500 shield
-//#define FONA_PWRKEY 6
+//#define BOTLETICS_PWRKEY 6
 //#define FONA_RST 7
 ////#define FONA_DTR 9 // Connect with solder jumper
 ////#define FONA_RI 8 // Need to enable via AT commands
@@ -94,16 +94,16 @@ SoftwareSerial *fonaSerial = &fonaSS;
 
 // Use this for 2G modules
 #ifdef SIMCOM_2G
-  Adafruit_FONA fona = Adafruit_FONA(FONA_RST);
+  Botletics_modem fona = Botletics_modem(FONA_RST);
   
 // Use this one for 3G modules
 #elif defined(SIMCOM_3G)
-  Adafruit_FONA_3G fona = Adafruit_FONA_3G(FONA_RST);
+  Botletics_modem_3G fona = Botletics_modem_3G(FONA_RST);
   
 // Use this one for LTE CAT-M/NB-IoT modules (like SIM7000)
 // Notice how we don't include the reset pin because it's reserved for emergencies on the LTE module!
 #elif defined(SIMCOM_7000) || defined(SIMCOM_7070) || defined(SIMCOM_7500) || defined(SIMCOM_7600)
-  Adafruit_FONA_LTE fona = Adafruit_FONA_LTE();
+  Botletics_modem_LTE fona = Botletics_modem_LTE();
 #endif
 
 uint8_t readline(char *buff, uint8_t maxbuff, uint16_t timeout = 0);
@@ -116,11 +116,11 @@ void setup() {
   pinMode(FONA_RST, OUTPUT);
   digitalWrite(FONA_RST, HIGH); // Default state
 
-  pinMode(FONA_PWRKEY, OUTPUT);
+  pinMode(BOTLETICS_PWRKEY, OUTPUT);
 
   // Turn on the module by pulsing PWRKEY low for a little bit
   // This amount of time depends on the specific module that's used
-  fona.powerOn(FONA_PWRKEY); // Power on the module
+  fona.powerOn(BOTLETICS_PWRKEY); // Power on the module
 
   Serial.begin(9600);
   Serial.println(F("FONA basic test"));
@@ -1033,7 +1033,7 @@ void loop() {
             // fona.HTTP_addHeader("Accept", "*/*, 3);
             
             // Connect to server
-            // If https:// is used, #define SSL_FONA 1 in Adafruit_FONA.h
+            // If https:// is used, #define BOTLETICS_SSL 1 in Botletics_modem.h
             if (! fona.HTTP_connect("http://dweet.io")) {
               Serial.println(F("Failed to connect to server..."));
               break;

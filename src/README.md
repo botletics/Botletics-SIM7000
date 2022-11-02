@@ -28,8 +28,8 @@ Written by Limor Fried/Ladyada for Adafruit Industries.
 BSD license, all text above must be included in any redistribution
 With updates from Samy Kamkar
 
-To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder Adafruit_FONA 
-Check that the Adafruit_FONA folder contains Adafruit_FONA.cpp and Adafruit_FONA.h
+To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder Botletics_modem 
+Check that the Botletics_modem folder contains Botletics_modem.cpp and Botletics_modem.h
 
-Place the Adafruit_FONA library folder your *arduinosketchfolder*/libraries/ folder. 
+Place the Botletics_modem library folder your *arduinosketchfolder*/libraries/ folder. 
 You may need to create the libraries subfolder if its your first library. Restart the IDE.

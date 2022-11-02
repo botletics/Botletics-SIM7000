@@ -1,4 +1,4 @@
-// Modified version of Adafruit FONA library for Botletics hardware
+// Adaptation of Adafruit FONA library for Botletics hardware
 // Original text below:
 
 /***************************************************
@@ -20,34 +20,33 @@
 
 #include "BotleticsSIM7000.h"
 
-#ifdef SSL_FONA
-  char *server_CA_FONA;
-  uint16_t port_CA_FONA = 0;
-  int CID_CA_FONA = 0;
-  char *rootCA_FONA;
+#ifdef BOTLETICS_SSL
+  char *_server_CA;
+  uint16_t _port_CA = 0;
+  int _CID_CA = 0;
+  char *_rootCA;
 #endif
 
 
 
-Adafruit_FONA::Adafruit_FONA(int8_t rst)
+Botletics_modem::Botletics_modem(int8_t rst)
 {
   _rstpin = rst;
 
-  // apn = F("FONAnet");
   apn = F("");
   apnusername = 0;
   apnpassword = 0;
   mySerial = 0;
   httpsredirect = false;
-  useragent = F("FONA");
+  useragent = F("botletics");
   ok_reply = F("OK");
 }
 
-uint8_t Adafruit_FONA::type(void) {
+uint8_t Botletics_modem::type(void) {
   return _type;
 }
 
-boolean Adafruit_FONA::begin(Stream &port) {
+boolean Botletics_modem::begin(Stream &port) {
   mySerial = &port;
 
   if (_rstpin != 99) { // Pulse the reset pin only if it's not an LTE module
@@ -76,7 +75,7 @@ boolean Adafruit_FONA::begin(Stream &port) {
   }
 
   if (timeout <= 0) {
-#ifdef ADAFRUIT_FONA_DEBUG
+#ifdef BOTLETICS_MODEM_DEBUG
     DEBUG_PRINTLN(F("Timeout: No response to AT... last ditch attempt."));
 #endif
     sendCheckReply(F("AT"), ok_reply);
@@ -170,8 +169,8 @@ boolean Adafruit_FONA::begin(Stream &port) {
     }
   }
 
-#if defined(FONA_PREF_SMS_STORAGE)
-    sendCheckReply(F("AT+CPMS=" FONA_PREF_SMS_STORAGE "," FONA_PREF_SMS_STORAGE "," FONA_PREF_SMS_STORAGE), ok_reply);
+#if defined(MODEM_PREF_SMS_STORAGE)
+    sendCheckReply(F("AT+CPMS=" MODEM_PREF_SMS_STORAGE "," MODEM_PREF_SMS_STORAGE "," MODEM_PREF_SMS_STORAGE), ok_reply);
 #endif
 
   return true;
@@ -179,11 +178,11 @@ boolean Adafruit_FONA::begin(Stream &port) {
 
 
 /********* Serial port ********************************************/
-boolean Adafruit_FONA::setBaudrate(uint32_t baud) {
+boolean Botletics_modem::setBaudrate(uint32_t baud) {
   return sendCheckReply(F("AT+IPREX="), baud, ok_reply);
 }
 
-boolean Adafruit_FONA_LTE::setBaudrate(uint32_t baud) {
+boolean Botletics_modem_LTE::setBaudrate(uint32_t baud) {
   return sendCheckReply(F("AT+IPR="), baud, ok_reply);
 }
 
@@ -191,7 +190,7 @@ boolean Adafruit_FONA_LTE::setBaudrate(uint32_t baud) {
 /********* POWER, BATTERY & ADC ********************************************/
 
 /* returns value in mV (uint16_t) */
-boolean Adafruit_FONA::getBattVoltage(uint16_t *v) {
+boolean Botletics_modem::getBattVoltage(uint16_t *v) {
   if (_type == SIM5320A || _type == SIM5320E || _type == SIM7500 || _type == SIM7600) {
     float f;
     boolean b = sendParseReplyFloat(F("AT+CBC"), F("+CBC: "), &f, ',', 0);
@@ -202,7 +201,7 @@ boolean Adafruit_FONA::getBattVoltage(uint16_t *v) {
 }
 
 /* returns value in mV (uint16_t) */
-boolean Adafruit_FONA_3G::getBattVoltage(uint16_t *v) {
+boolean Botletics_modem_3G::getBattVoltage(uint16_t *v) {
   float f;
   boolean b = sendParseReply(F("AT+CBC"), F("+CBC: "), &f, ',', 2);
   *v = f*1000;
@@ -210,9 +209,9 @@ boolean Adafruit_FONA_3G::getBattVoltage(uint16_t *v) {
 }
 
 /* powers on the module */
-void Adafruit_FONA::powerOn(uint8_t FONA_PWRKEY) {
-  pinMode(FONA_PWRKEY, OUTPUT);
-  digitalWrite(FONA_PWRKEY, LOW);
+void Botletics_modem::powerOn(uint8_t BOTLETICS_PWRKEY) {
+  pinMode(BOTLETICS_PWRKEY, OUTPUT);
+  digitalWrite(BOTLETICS_PWRKEY, LOW);
 
   // See spec sheets for your particular module
   if (_type <= SIM808_V2)
@@ -224,11 +223,11 @@ void Adafruit_FONA::powerOn(uint8_t FONA_PWRKEY) {
   else if (_type == SIM7500 || _type == SIM7600)
     delay(500);
 
-  digitalWrite(FONA_PWRKEY, HIGH);
+  digitalWrite(BOTLETICS_PWRKEY, HIGH);
 }
 
 /* powers down the SIM module */
-boolean Adafruit_FONA::powerDown(void) {
+boolean Botletics_modem::powerDown(void) {
   if (_type == SIM7500 || _type == SIM7600) {
     if (! sendCheckReply(F("AT+CPOF"), ok_reply))
       return false;
@@ -243,7 +242,7 @@ boolean Adafruit_FONA::powerDown(void) {
 }
 
 /* powers down the SIM5320 */
-boolean Adafruit_FONA_3G::powerDown(void) {
+boolean Botletics_modem_3G::powerDown(void) {
   if (! sendCheckReply(F("AT+CPOF"), ok_reply))
     return false;
 
@@ -252,11 +251,11 @@ boolean Adafruit_FONA_3G::powerDown(void) {
 
 
 /* returns the percentage charge of battery as reported by sim800 */
-boolean Adafruit_FONA::getBattPercent(uint16_t *p) {
+boolean Botletics_modem::getBattPercent(uint16_t *p) {
   return sendParseReply(F("AT+CBC"), F("+CBC: "), p, ',', 1);
 }
 
-boolean Adafruit_FONA::getADCVoltage(uint16_t *v) {
+boolean Botletics_modem::getADCVoltage(uint16_t *v) {
   return sendParseReply(F("AT+CADC?"), F("+CADC: 1,"), v);
 }
 
@@ -270,7 +269,7 @@ boolean Adafruit_FONA::getADCVoltage(uint16_t *v) {
 // 5 --> Factory test mode
 // 6 --> Restarts module
 // 7 --> Offline mode
-boolean Adafruit_FONA::setFunctionality(uint8_t option) {
+boolean Botletics_modem::setFunctionality(uint8_t option) {
   return sendCheckReply(F("AT+CFUN="), option, ok_reply);
 }
 
@@ -278,14 +277,14 @@ boolean Adafruit_FONA::setFunctionality(uint8_t option) {
 // 13 - GSM only
 // 38 - LTE only
 // 51 - GSM and LTE only
-boolean Adafruit_FONA_LTE::setPreferredMode(uint8_t mode) {
+boolean Botletics_modem_LTE::setPreferredMode(uint8_t mode) {
   return sendCheckReply(F("AT+CNMP="), mode, ok_reply);
 }
 
 // 1 - CAT-M
 // 2 - NB-IoT
 // 3 - CAT-M and NB-IoT
-boolean Adafruit_FONA_LTE::setPreferredLTEMode(uint8_t mode) {
+boolean Botletics_modem_LTE::setPreferredLTEMode(uint8_t mode) {
   return sendCheckReply(F("AT+CMNB="), mode, ok_reply);
 }
 
@@ -294,7 +293,7 @@ boolean Adafruit_FONA_LTE::setPreferredLTEMode(uint8_t mode) {
 // whereas Verizon uses band 13
 // Mode: "CAT-M" or "NB-IOT"
 // Band: The cellular EUTRAN band number
-boolean Adafruit_FONA_LTE::setOperatingBand(const char * mode, uint8_t band) {
+boolean Botletics_modem_LTE::setOperatingBand(const char * mode, uint8_t band) {
   char cmdBuff[24];
 
   sprintf(cmdBuff, "AT+CBANDCFG=\"%s\",%i", mode, band);
@@ -304,7 +303,7 @@ boolean Adafruit_FONA_LTE::setOperatingBand(const char * mode, uint8_t band) {
 
 // Sleep mode reduces power consumption significantly while remaining registered to the network
 // NOTE: USB port must be disconnected before this will take effect
-boolean Adafruit_FONA::enableSleepMode(bool onoff) {
+boolean Botletics_modem::enableSleepMode(bool onoff) {
   return sendCheckReply(F("AT+CSCLK="), onoff, ok_reply);
 }
 
@@ -322,7 +321,7 @@ boolean Adafruit_FONA::enableSleepMode(bool onoff) {
 // See AT command manual for eDRX values (options 0-15)
 
 // NOTE: Network must support eDRX mode
-boolean Adafruit_FONA::set_eDRX(uint8_t mode, uint8_t connType, char * eDRX_val) {
+boolean Botletics_modem::set_eDRX(uint8_t mode, uint8_t connType, char * eDRX_val) {
   if (strlen(eDRX_val) > 4) return false;
 
   char auxStr[21];
@@ -333,7 +332,7 @@ boolean Adafruit_FONA::set_eDRX(uint8_t mode, uint8_t connType, char * eDRX_val)
 }
 
 // NOTE: Network must support PSM and modem needs to restart before it takes effect
-boolean Adafruit_FONA::enablePSM(bool onoff) {
+boolean Botletics_modem::enablePSM(bool onoff) {
   return sendCheckReply(F("AT+CPSMS="), onoff, ok_reply);
 }
 // Set PSM with custom TAU and active time
@@ -353,7 +352,7 @@ boolean Adafruit_FONA::enablePSM(bool onoff) {
 // 111 disabled
 
 // Note: Network decides the final value of the TAU and active time.
-boolean Adafruit_FONA::enablePSM(bool onoff, char * TAU_val, char * activeTime_val) { // AT+CPSMS command
+boolean Botletics_modem::enablePSM(bool onoff, char * TAU_val, char * activeTime_val) { // AT+CPSMS command
     if (strlen(activeTime_val) > 8) return false;
     if (strlen(TAU_val) > 8) return false;
 
@@ -368,7 +367,7 @@ boolean Adafruit_FONA::enablePSM(bool onoff, char * TAU_val, char * activeTime_v
 // Not connected to network --> 1,64,800
 // Connected to network     --> 2,64,3000
 // Data connection enabled  --> 3,64,300
-boolean Adafruit_FONA::setNetLED(bool onoff, uint8_t mode, uint16_t timer_on, uint16_t timer_off) {
+boolean Botletics_modem::setNetLED(bool onoff, uint8_t mode, uint16_t timer_on, uint16_t timer_off) {
   if (onoff) {
     if (! sendCheckReply(F("AT+CNETLIGHT=1"), ok_reply)) return false;
 
@@ -400,34 +399,34 @@ boolean Adafruit_FONA::setNetLED(bool onoff, uint8_t mode, uint16_t timer_on, ui
 // 4 - ME is waiting for SIM PUK (antitheft)
 // 5 - PIN2, e.g. for editing the FDN book possible only if preceding Command was acknowledged with +CME ERROR:17
 // 6 - PUK2. Possible only if preceding Command was acknowledged with error +CME ERROR: 18.
-int8_t Adafruit_FONA::getPINStatus()
+int8_t Botletics_modem::getPINStatus()
 {
   getReply(F("AT+CPIN?"));
 
   if (strncmp(replybuffer, "+CPIN: ", 7) != 0)
-    return FONA_SIM_ERROR;
+    return SIM_ERROR;
 
   char *returnVal = replybuffer + 7;
 
   if (strcmp(returnVal, "READY") == 0)
-    return FONA_SIM_READY;
+    return SIM_READY;
   else if (strcmp(returnVal, "SIM PIN") == 0)
-    return FONA_SIM_PIN;
+    return SIM_PIN;
   else if (strcmp(returnVal, "SIM PUK") == 0)
-    return FONA_SIM_PUK;
+    return SIM_PUK;
   else if (strcmp(returnVal, "PH_SIM PIN") == 0)
-    return FONA_SIM_PH_PIN;
+    return SIM_PH_PIN;
   else if (strcmp(returnVal, "PH_SIM PUK") == 0)
-    return FONA_SIM_PH_PUK;
+    return SIM_PH_PUK;
   else if (strcmp(returnVal, "SIM PIN2") == 0)
-    return FONA_SIM_PIN2;
+    return SIM_PIN2;
   else if (strcmp(returnVal, "SIM PUK2") == 0)
-    return FONA_SIM_PUK2;
+    return SIM_PUK2;
 
-  return FONA_SIM_UNKNOWN;
+  return SIM_UNKNOWN;
 }
 
-uint8_t Adafruit_FONA::unlockSIM(const char *pin)
+uint8_t Botletics_modem::unlockSIM(const char *pin)
 {
   char sendbuff[14] = "AT+CPIN=";
   sendbuff[8] = pin[0];
@@ -439,14 +438,13 @@ uint8_t Adafruit_FONA::unlockSIM(const char *pin)
   return sendCheckReply(sendbuff, ok_reply);
 }
 
-uint8_t Adafruit_FONA::getSIMCCID(char *ccid) {
+uint8_t Botletics_modem::getSIMCCID(char *ccid) {
   getReply(F("AT+CCID"));
   // up to 28 chars for reply, 20 char total ccid
   if (replybuffer[0] == '+') {
-    // fona 3g?
+    // 3g?
     strncpy(ccid, replybuffer+8, 20);
   } else {
-    // fona 800 or 800
     strncpy(ccid, replybuffer, 20);
   }
   ccid[20] = 0;
@@ -458,7 +456,7 @@ uint8_t Adafruit_FONA::getSIMCCID(char *ccid) {
 
 /********* IMEI **********************************************************/
 
-uint8_t Adafruit_FONA::getIMEI(char *imei) {
+uint8_t Botletics_modem::getIMEI(char *imei) {
   getReply(F("AT+GSN"));
 
   // up to 15 chars
@@ -472,7 +470,7 @@ uint8_t Adafruit_FONA::getIMEI(char *imei) {
 
 /********* NETWORK *******************************************************/
 
-uint8_t Adafruit_FONA::getNetworkStatus(void) {
+uint8_t Botletics_modem::getNetworkStatus(void) {
   uint16_t status;
 
   if (_type >= SIM7000) {
@@ -486,7 +484,7 @@ uint8_t Adafruit_FONA::getNetworkStatus(void) {
 }
 
 
-uint8_t Adafruit_FONA::getRSSI(void) {
+uint8_t Botletics_modem::getRSSI(void) {
   uint16_t reply;
 
   if (! sendParseReply(F("AT+CSQ"), F("+CSQ: "), &reply) ) return 0;
@@ -496,7 +494,7 @@ uint8_t Adafruit_FONA::getRSSI(void) {
 
 /********* AUDIO *******************************************************/
 
-boolean Adafruit_FONA::setAudio(uint8_t a) {
+boolean Botletics_modem::setAudio(uint8_t a) {
   // For SIM5320, 1 is headset, 3 is speaker phone, 4 is PCM interface
   if ( (_type == SIM5320A || _type == SIM5320E) && (a != 1 && a != 3 && a != 4) ) return false;
   // For SIM7500, 1 is headset, 3 is speaker phone
@@ -508,7 +506,7 @@ boolean Adafruit_FONA::setAudio(uint8_t a) {
   else return sendCheckReply(F("AT+CSDVC="), a, ok_reply);
 }
 
-uint8_t Adafruit_FONA::getVolume(void) {
+uint8_t Botletics_modem::getVolume(void) {
   uint16_t reply;
 
   if (! sendParseReply(F("AT+CLVL?"), F("+CLVL: "), &reply) ) return 0;
@@ -516,12 +514,12 @@ uint8_t Adafruit_FONA::getVolume(void) {
   return reply;
 }
 
-boolean Adafruit_FONA::setVolume(uint8_t i) {
+boolean Botletics_modem::setVolume(uint8_t i) {
   return sendCheckReply(F("AT+CLVL="), i, ok_reply);
 }
 
 
-boolean Adafruit_FONA::playDTMF(char dtmf) {
+boolean Botletics_modem::playDTMF(char dtmf) {
   char str[4];
   str[0] = '\"';
   str[1] = dtmf;
@@ -530,18 +528,18 @@ boolean Adafruit_FONA::playDTMF(char dtmf) {
   return sendCheckReply(F("AT+CLDTMF=3,"), str, ok_reply);
 }
 
-boolean Adafruit_FONA::playToolkitTone(uint8_t t, uint16_t len) {
+boolean Botletics_modem::playToolkitTone(uint8_t t, uint16_t len) {
   return sendCheckReply(F("AT+STTONE=1,"), t, len, ok_reply);
 }
 
-boolean Adafruit_FONA_3G::playToolkitTone(uint8_t t, uint16_t len) {
+boolean Botletics_modem_3G::playToolkitTone(uint8_t t, uint16_t len) {
   if (! sendCheckReply(F("AT+CPTONE="), t, ok_reply))
     return false;
   delay(len);
   return sendCheckReply(F("AT+CPTONE=0"), ok_reply);
 }
 
-boolean Adafruit_FONA::setMicVolume(uint8_t a, uint8_t level) {
+boolean Botletics_modem::setMicVolume(uint8_t a, uint8_t level) {
   // For SIM800, 0 is main audio channel, 1 is aux, 2 is main audio channel (hands-free), 3 is aux channel (hands-free)
   if (a > 3) return false;
 
@@ -551,7 +549,7 @@ boolean Adafruit_FONA::setMicVolume(uint8_t a, uint8_t level) {
 /********* FM RADIO *******************************************************/
 
 
-boolean Adafruit_FONA::FMradio(boolean onoff, uint8_t a) {
+boolean Botletics_modem::FMradio(boolean onoff, uint8_t a) {
   if (! onoff) {
     return sendCheckReply(F("AT+FMCLOSE"), ok_reply);
   }
@@ -562,7 +560,7 @@ boolean Adafruit_FONA::FMradio(boolean onoff, uint8_t a) {
   return sendCheckReply(F("AT+FMOPEN="), a, ok_reply);
 }
 
-boolean Adafruit_FONA::tuneFMradio(uint16_t station) {
+boolean Botletics_modem::tuneFMradio(uint16_t station) {
   // Fail if FM station is outside allowed range.
   if ((station < 870) || (station > 1090))
     return false;
@@ -570,7 +568,7 @@ boolean Adafruit_FONA::tuneFMradio(uint16_t station) {
   return sendCheckReply(F("AT+FMFREQ="), station, ok_reply);
 }
 
-boolean Adafruit_FONA::setFMVolume(uint8_t i) {
+boolean Botletics_modem::setFMVolume(uint8_t i) {
   // Fail if volume is outside allowed range (0-6).
   if (i > 6) {
     return false;
@@ -579,7 +577,7 @@ boolean Adafruit_FONA::setFMVolume(uint8_t i) {
   return sendCheckReply(F("AT+FMVOLUME="), i, ok_reply);
 }
 
-int8_t Adafruit_FONA::getFMVolume() {
+int8_t Botletics_modem::getFMVolume() {
   uint16_t level;
 
   if (! sendParseReply(F("AT+FMVOLUME?"), F("+FMVOLUME: "), &level) ) return 0;
@@ -587,7 +585,7 @@ int8_t Adafruit_FONA::getFMVolume() {
   return level;
 }
 
-int8_t Adafruit_FONA::getFMSignalLevel(uint16_t station) {
+int8_t Botletics_modem::getFMSignalLevel(uint16_t station) {
   // Fail if FM station is outside allowed range.
   if ((station < 875) || (station > 1080)) {
     return -1;
@@ -595,7 +593,7 @@ int8_t Adafruit_FONA::getFMSignalLevel(uint16_t station) {
 
   // Send FM signal level query command.
   // Note, need to explicitly send timeout so right overload is chosen.
-  getReply(F("AT+FMSIGNAL="), station, FONA_DEFAULT_TIMEOUT_MS);
+  getReply(F("AT+FMSIGNAL="), station, BOTLETICS_DEFAULT_TIMEOUT_MS);
   // Check response starts with expected value.
   char *p = prog_char_strstr(replybuffer, PSTR("+FMSIGNAL: "));
   if (p == 0) return -1;
@@ -612,7 +610,7 @@ int8_t Adafruit_FONA::getFMSignalLevel(uint16_t station) {
 
 /********* PWM/BUZZER **************************************************/
 
-boolean Adafruit_FONA::setPWM(uint16_t period, uint8_t duty) {
+boolean Botletics_modem::setPWM(uint16_t period, uint8_t duty) {
   if (period > 2000) return false;
   if (duty > 100) return false;
 
@@ -620,7 +618,7 @@ boolean Adafruit_FONA::setPWM(uint16_t period, uint8_t duty) {
 }
 
 /********* CALL PHONES **************************************************/
-boolean Adafruit_FONA::callPhone(char *number) {
+boolean Botletics_modem::callPhone(char *number) {
   char sendbuff[35] = "ATD";
   strncpy(sendbuff+3, number, min(30, (int)strlen(number)));
 
@@ -636,49 +634,49 @@ boolean Adafruit_FONA::callPhone(char *number) {
 }
 
 
-uint8_t Adafruit_FONA::getCallStatus(void) {
+uint8_t Botletics_modem::getCallStatus(void) {
   uint16_t phoneStatus;
 
   if (! sendParseReply(F("AT+CPAS"), F("+CPAS: "), &phoneStatus))
-    return FONA_CALL_FAILED; // 1, since 0 is actually a known, good reply
+    return CALL_FAILED; // 1, since 0 is actually a known, good reply
 
   return phoneStatus;  // 0 ready, 2 unknown, 3 ringing, 4 call in progress
 }
 
-boolean Adafruit_FONA::hangUp(void) {
+boolean Botletics_modem::hangUp(void) {
   return sendCheckReply(F("ATH0"), ok_reply);
 }
 
-boolean Adafruit_FONA_3G::hangUp(void) {
+boolean Botletics_modem_3G::hangUp(void) {
   getReply(F("ATH"));
 
   return (prog_char_strstr(replybuffer, (prog_char *)F("VOICE CALL: END")) != 0);
 }
 
-boolean Adafruit_FONA_LTE::hangUp(void) {
+boolean Botletics_modem_LTE::hangUp(void) {
   // return sendCheckReply(F("ATH"), ok_reply); // For SIM7500 this only works when AT+CVHU=0
   return sendCheckReply(F("AT+CHUP"), ok_reply);
 }
 
-boolean Adafruit_FONA::pickUp(void) {
+boolean Botletics_modem::pickUp(void) {
   return sendCheckReply(F("ATA"), ok_reply);
 }
 
-boolean Adafruit_FONA_3G::pickUp(void) {
+boolean Botletics_modem_3G::pickUp(void) {
   return sendCheckReply(F("ATA"), F("VOICE CALL: BEGIN"));
 }
 
 
-void Adafruit_FONA::onIncomingCall() {
+void Botletics_modem::onIncomingCall() {
 
   DEBUG_PRINT(F("> ")); DEBUG_PRINTLN(F("Incoming call..."));
 
-  Adafruit_FONA::_incomingCall = true;
+  Botletics_modem::_incomingCall = true;
 }
 
-boolean Adafruit_FONA::_incomingCall = false;
+boolean Botletics_modem::_incomingCall = false;
 
-boolean Adafruit_FONA::callerIdNotification(boolean enable, uint8_t interrupt) {
+boolean Botletics_modem::callerIdNotification(boolean enable, uint8_t interrupt) {
   if(enable){
     attachInterrupt(interrupt, onIncomingCall, FALLING);
     return sendCheckReply(F("AT+CLIP=1"), ok_reply);
@@ -688,9 +686,9 @@ boolean Adafruit_FONA::callerIdNotification(boolean enable, uint8_t interrupt) {
   return sendCheckReply(F("AT+CLIP=0"), ok_reply);
 }
 
-boolean Adafruit_FONA::incomingCallNumber(char* phonenum) {
+boolean Botletics_modem::incomingCallNumber(char* phonenum) {
   //+CLIP: "<incoming phone number>",145,"",0,"",0
-  if(!Adafruit_FONA::_incomingCall)
+  if(!Botletics_modem::_incomingCall)
     return false;
 
   readline();
@@ -708,13 +706,13 @@ boolean Adafruit_FONA::incomingCallNumber(char* phonenum) {
   DEBUG_PRINTLN(replybuffer);
 
 
-  Adafruit_FONA::_incomingCall = false;
+  Botletics_modem::_incomingCall = false;
   return true;
 }
 
 /********* SMS **********************************************************/
 
-uint8_t Adafruit_FONA::getSMSInterrupt(void) {
+uint8_t Botletics_modem::getSMSInterrupt(void) {
   uint16_t reply;
 
   if (! sendParseReply(F("AT+CFGRI?"), F("+CFGRI: "), &reply) ) return 0;
@@ -722,18 +720,18 @@ uint8_t Adafruit_FONA::getSMSInterrupt(void) {
   return reply;
 }
 
-boolean Adafruit_FONA::setSMSInterrupt(uint8_t i) {
+boolean Botletics_modem::setSMSInterrupt(uint8_t i) {
   return sendCheckReply(F("AT+CFGRI="), i, ok_reply);
 }
 
-int8_t Adafruit_FONA::getNumSMS(void) {
+int8_t Botletics_modem::getNumSMS(void) {
   uint16_t numsms;
 
   // get into text mode
   if (! sendCheckReply(F("AT+CMGF=1"), ok_reply)) return -1;
 
   // ask how many sms are stored
-  if (sendParseReply(F("AT+CPMS?"), F(FONA_PREF_SMS_STORAGE ","), &numsms))
+  if (sendParseReply(F("AT+CPMS?"), F(MODEM_PREF_SMS_STORAGE ","), &numsms))
     return numsms;
   if (sendParseReply(F("AT+CPMS?"), F("\"SM\","), &numsms))
     return numsms;
@@ -744,7 +742,7 @@ int8_t Adafruit_FONA::getNumSMS(void) {
 
 // Reading SMS's is a bit involved so we don't use helpers that may cause delays or debug
 // printouts!
-boolean Adafruit_FONA::readSMS(uint8_t i, char *smsbuff,
+boolean Botletics_modem::readSMS(uint8_t i, char *smsbuff,
              uint16_t maxlen, uint16_t *readlen) {
   // text mode
   if (! sendCheckReply(F("AT+CMGF=1"), ok_reply)) return false;
@@ -798,7 +796,7 @@ boolean Adafruit_FONA::readSMS(uint8_t i, char *smsbuff,
 // and a null terminator will be added if less than senderlen charactesr are
 // copied to the result.  Returns true if a result was successfully retrieved,
 // otherwise false.
-boolean Adafruit_FONA::getSMSSender(uint8_t i, char *sender, int senderlen) {
+boolean Botletics_modem::getSMSSender(uint8_t i, char *sender, int senderlen) {
   // Ensure text mode and all text mode parameters are sent.
   if (! sendCheckReply(F("AT+CMGF=1"), ok_reply)) return false;
   if (! sendCheckReply(F("AT+CSDH=1"), ok_reply)) return false;
@@ -825,7 +823,7 @@ boolean Adafruit_FONA::getSMSSender(uint8_t i, char *sender, int senderlen) {
   return result;
 }
 
-boolean Adafruit_FONA::sendSMS(const char *smsaddr, const char *smsmsg) {
+boolean Botletics_modem::sendSMS(const char *smsaddr, const char *smsmsg) {
   if (! sendCheckReply(F("AT+CMGF=1"), ok_reply)) return false;
 
   char sendcmd[30] = "AT+CMGS=\"";
@@ -865,7 +863,7 @@ boolean Adafruit_FONA::sendSMS(const char *smsaddr, const char *smsmsg) {
   return true;
 }
 
-boolean Adafruit_FONA::deleteSMS(uint8_t i) {
+boolean Botletics_modem::deleteSMS(uint8_t i) {
     if (! sendCheckReply(F("AT+CMGF=1"), ok_reply)) return false;
   // delete an sms
   char sendbuff[12] = "AT+CMGD=000";
@@ -879,14 +877,14 @@ boolean Adafruit_FONA::deleteSMS(uint8_t i) {
 }
 
 
-boolean Adafruit_FONA::deleteAllSMS() {
+boolean Botletics_modem::deleteAllSMS() {
   if (! sendCheckReply(F("AT+CMGF=1"), ok_reply)) return false;
   return sendCheckReply("AT+CMGD=1,4", ok_reply, 2000);
 }
 
 /********* USSD *********************************************************/
 
-boolean Adafruit_FONA::sendUSSD(char *ussdmsg, char *ussdbuff, uint16_t maxlen, uint16_t *readlen) {
+boolean Botletics_modem::sendUSSD(char *ussdmsg, char *ussdbuff, uint16_t maxlen, uint16_t *readlen) {
   if (! sendCheckReply(F("AT+CUSD=1"), ok_reply)) return false;
 
   char sendcmd[30] = "AT+CUSD=1,\"";
@@ -927,7 +925,7 @@ boolean Adafruit_FONA::sendUSSD(char *ussdmsg, char *ussdbuff, uint16_t maxlen, 
 /********* TIME **********************************************************/
 
 /*
-boolean Adafruit_FONA::enableNetworkTimeSync(boolean onoff) {
+boolean Botletics_modem::enableNetworkTimeSync(boolean onoff) {
   if (onoff) {
     if (! sendCheckReply(F("AT+CLTS=1"), ok_reply))
       return false;
@@ -950,7 +948,7 @@ boolean Adafruit_FONA::enableNetworkTimeSync(boolean onoff) {
 // 64 Service response error
 // 65 Service Response Timeout
 // see AT Command manual 1.04 p.204
-uint8_t Adafruit_FONA::getNTPstatus()
+uint8_t Botletics_modem::getNTPstatus()
 {
     if (! sendCheckReply(F("AT+CNTP"), ok_reply, 10000))
       return 0;
@@ -963,7 +961,7 @@ uint8_t Adafruit_FONA::getNTPstatus()
     return status;
 }
 
-boolean Adafruit_FONA::enableNTPTimeSync(boolean onoff, FONAFlashStringPtr ntpserver) {
+boolean Botletics_modem::enableNTPTimeSync(boolean onoff, FStringPtr ntpserver) {
   if (onoff) {
     if (! sendCheckReply(F("AT+CNTPCID=1"), ok_reply))
       return false;
@@ -975,7 +973,7 @@ boolean Adafruit_FONA::enableNTPTimeSync(boolean onoff, FONAFlashStringPtr ntpse
       mySerial->print(F("pool.ntp.org"));
     }
     mySerial->println(F("\",0"));
-    readline(FONA_DEFAULT_TIMEOUT_MS);
+    readline(BOTLETICS_DEFAULT_TIMEOUT_MS);
     if (strcmp(replybuffer, "OK") != 0)
       return false;
 
@@ -994,7 +992,7 @@ boolean Adafruit_FONA::enableNTPTimeSync(boolean onoff, FONAFlashStringPtr ntpse
   return true;
 }
 
-boolean Adafruit_FONA::getTime(char *buff, uint16_t maxlen) {
+boolean Botletics_modem::getTime(char *buff, uint16_t maxlen) {
   getReply(F("AT+CCLK?"), (uint16_t) 10000);
   if (strncmp(replybuffer, "+CCLK: ", 7) != 0)
     return false;
@@ -1011,7 +1009,7 @@ boolean Adafruit_FONA::getTime(char *buff, uint16_t maxlen) {
 
 /********* Real Time Clock ********************************************/
 
-boolean Adafruit_FONA::readRTC(uint8_t *year, uint8_t *month, uint8_t *date, uint8_t *hr, uint8_t *min, uint8_t *sec, int8_t *tz) {
+boolean Botletics_modem::readRTC(uint8_t *year, uint8_t *month, uint8_t *date, uint8_t *hr, uint8_t *min, uint8_t *sec, int8_t *tz) {
   getReply(F("AT+CCLK?"), (uint16_t) 10000); //Get RTC timeout 10 sec
   if (strncmp(replybuffer, "+CCLK: ", 7) != 0)
     return false;
@@ -1044,7 +1042,7 @@ boolean Adafruit_FONA::readRTC(uint8_t *year, uint8_t *month, uint8_t *date, uin
   return true;
 }
 
-boolean Adafruit_FONA::enableRTC(uint8_t i) {
+boolean Botletics_modem::enableRTC(uint8_t i) {
   if (! sendCheckReply(F("AT+CLTS="), i, ok_reply))
     return false;
   return sendCheckReply(F("AT&W"), ok_reply);
@@ -1053,7 +1051,7 @@ boolean Adafruit_FONA::enableRTC(uint8_t i) {
 /********* GPS **********************************************************/
 
 
-boolean Adafruit_FONA::enableGPS(boolean onoff) {
+boolean Botletics_modem::enableGPS(boolean onoff) {
   uint16_t state;
 
   // First check if its already on or off
@@ -1062,7 +1060,7 @@ boolean Adafruit_FONA::enableGPS(boolean onoff) {
     if (! sendParseReply(F("AT+CGNSPWR?"), F("+CGNSPWR: "), &state) )
       return false;
   } else if (_type == SIM5320A || _type == SIM5320E || _type == SIM7500 || _type == SIM7600) {
-    if (! Adafruit_FONA::sendParseReply(F("AT+CGPS?"), F("+CGPS: "), &state) )
+    if (! Botletics_modem::sendParseReply(F("AT+CGPS?"), F("+CGPS: "), &state) )
       return false;
   } else {
     if (! sendParseReply(F("AT+CGPSPWR?"), F("+CGPSPWR: "), &state))
@@ -1098,11 +1096,11 @@ boolean Adafruit_FONA::enableGPS(boolean onoff) {
 }
 
 /*
-boolean Adafruit_FONA_3G::enableGPS(boolean onoff) {
+boolean Botletics_modem_3G::enableGPS(boolean onoff) {
   uint16_t state;
 
   // first check if its already on or off
-  if (! Adafruit_FONA::sendParseReply(F("AT+CGPS?"), F("+CGPS: "), &state) )
+  if (! Botletics_modem::sendParseReply(F("AT+CGPS?"), F("+CGPS: "), &state) )
     return false;
 
   if (onoff && !state) {
@@ -1118,7 +1116,7 @@ boolean Adafruit_FONA_3G::enableGPS(boolean onoff) {
 }
 */
 
-int8_t Adafruit_FONA::GPSstatus(void) {
+int8_t Botletics_modem::GPSstatus(void) {
   if (_type == SIM808_V2 || _type == SIM7000 || _type == SIM7070) {
     // 808 V2 uses GNS commands and doesn't have an explicit 2D/3D fix status.
     // Instead just look for a fix and if found assume it's a 3D fix.
@@ -1136,7 +1134,7 @@ int8_t Adafruit_FONA::GPSstatus(void) {
     else return 1;
   }
   if (_type == SIM5320A || _type == SIM5320E) {
-    // FONA 3G doesn't have an explicit 2D/3D fix status.
+    // 3G doesn't have an explicit 2D/3D fix status.
     // Instead just look for a fix and if found assume it's a 3D fix.
     getReply(F("AT+CGPSINFO"));
     char *p = prog_char_strstr(replybuffer, (prog_char*)F("+CGPSINFO:"));
@@ -1161,7 +1159,7 @@ int8_t Adafruit_FONA::GPSstatus(void) {
   return 0;
 }
 
-uint8_t Adafruit_FONA::getGPS(uint8_t arg, char *buffer, uint8_t maxbuff) {
+uint8_t Botletics_modem::getGPS(uint8_t arg, char *buffer, uint8_t maxbuff) {
   int32_t x = arg;
 
   if (_type == SIM5320A || _type == SIM5320E || _type == SIM7500 || _type == SIM7600) {
@@ -1188,8 +1186,8 @@ uint8_t Adafruit_FONA::getGPS(uint8_t arg, char *buffer, uint8_t maxbuff) {
   return len;
 }
 
-// boolean Adafruit_FONA::getGPS(float *lat, float *lon, float *speed_kph, float *heading, float *altitude) {
-boolean Adafruit_FONA::getGPS(float *lat, float *lon, float *speed_kph, float *heading, float *altitude,
+// boolean Botletics_modem::getGPS(float *lat, float *lon, float *speed_kph, float *heading, float *altitude) {
+boolean Botletics_modem::getGPS(float *lat, float *lon, float *speed_kph, float *heading, float *altitude,
                               uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *hour, uint8_t *min, float *sec) {
 
   char gpsbuffer[120];
@@ -1504,7 +1502,7 @@ boolean Adafruit_FONA::getGPS(float *lat, float *lon, float *speed_kph, float *h
 
 }
 
-boolean Adafruit_FONA::enableGPSNMEA(uint8_t i) {
+boolean Botletics_modem::enableGPSNMEA(uint8_t i) {
 
   char sendbuff[15] = "AT+CGPSOUT=000";
   sendbuff[11] = (i / 100) + '0';
@@ -1530,7 +1528,7 @@ boolean Adafruit_FONA::enableGPSNMEA(uint8_t i) {
 /********* GPRS **********************************************************/
 
 
-boolean Adafruit_FONA::enableGPRS(boolean onoff) {
+boolean Botletics_modem::enableGPRS(boolean onoff) {
   if (_type == SIM5320A || _type == SIM5320E || _type == SIM7500 || _type == SIM7600) {
     if (onoff) {
       // disconnect all sockets
@@ -1713,7 +1711,7 @@ boolean Adafruit_FONA::enableGPRS(boolean onoff) {
 }
 
 /*
-boolean Adafruit_FONA_3G::enableGPRS(boolean onoff) {
+boolean Botletics_modem_3G::enableGPRS(boolean onoff) {
 
   if (onoff) {
     // disconnect all sockets
@@ -1782,7 +1780,7 @@ boolean Adafruit_FONA_3G::enableGPRS(boolean onoff) {
 // 9 LTE NB
 // You can pass a string of sufficient length to receive a text copy as well
 // NOTE: Only tested on SIM7000E
-int8_t Adafruit_FONA::getNetworkType(char *typeStringBuffer, size_t bufferLength)
+int8_t Botletics_modem::getNetworkType(char *typeStringBuffer, size_t bufferLength)
 {
   uint16_t type;
 
@@ -1823,7 +1821,7 @@ int8_t Adafruit_FONA::getNetworkType(char *typeStringBuffer, size_t bufferLength
 // 1 Bearer is connected
 // 2 Bearer is closing
 // 3 Bearer is closed
-int8_t Adafruit_FONA::getBearerStatus(void)
+int8_t Botletics_modem::getBearerStatus(void)
 {
   uint16_t state;
 
@@ -1836,7 +1834,7 @@ int8_t Adafruit_FONA::getBearerStatus(void)
 // Query IP address and copy it into the passed buffer.
 // Buffer needs to be at least 16 chars long.
 // Returns true on success.
-boolean Adafruit_FONA::getIPv4(char *ipStringBuffer, size_t bufferLength)
+boolean Botletics_modem::getIPv4(char *ipStringBuffer, size_t bufferLength)
 {
   if (ipStringBuffer == NULL || bufferLength < 16)
     return false;
@@ -1854,20 +1852,20 @@ boolean Adafruit_FONA::getIPv4(char *ipStringBuffer, size_t bufferLength)
   return true;
 }
 
-void Adafruit_FONA::getNetworkInfo(void) {
+void Botletics_modem::getNetworkInfo(void) {
   getReply(F("AT+CPSI?"));
   getReply(F("AT+COPS?"));
   readline(); // Eat 'OK'
 }
 
-bool Adafruit_FONA::getNetworkInfoLong(void) {
+bool Botletics_modem::getNetworkInfoLong(void) {
   if (!sendCheckReply(F("AT+COPS=?"), ok_reply, 2000))
      return false;
 
   return true;
 }
 
-int8_t Adafruit_FONA::GPRSstate(void) {
+int8_t Botletics_modem::GPRSstate(void) {
   uint16_t state;
 
   if (! sendParseReply(F("AT+CGATT?"), F("+CGATT: "), &state) )
@@ -1876,8 +1874,8 @@ int8_t Adafruit_FONA::GPRSstate(void) {
   return state;
 }
 
-void Adafruit_FONA::setNetworkSettings(FONAFlashStringPtr apn,
-              FONAFlashStringPtr username, FONAFlashStringPtr password) {
+void Botletics_modem::setNetworkSettings(FStringPtr apn,
+              FStringPtr username, FStringPtr password) {
   this->apn = apn;
   this->apnusername = username;
   this->apnpassword = password;
@@ -1885,7 +1883,7 @@ void Adafruit_FONA::setNetworkSettings(FONAFlashStringPtr apn,
   if (_type >= SIM7000) sendCheckReplyQuoted(F("AT+CGDCONT=1,\"IP\","), apn, ok_reply, 10000);
 }
 
-boolean Adafruit_FONA::getGSMLoc(uint16_t *errorcode, char *buff, uint16_t maxlen) {
+boolean Botletics_modem::getGSMLoc(uint16_t *errorcode, char *buff, uint16_t maxlen) {
 
   getReply(F("AT+CIPGSMLOC=1,1"), (uint16_t)10000);
 
@@ -1901,7 +1899,7 @@ boolean Adafruit_FONA::getGSMLoc(uint16_t *errorcode, char *buff, uint16_t maxle
   return true;
 }
 
-boolean Adafruit_FONA::getGSMLoc(float *lat, float *lon) {
+boolean Botletics_modem::getGSMLoc(float *lat, float *lon) {
 
   uint16_t returncode;
   char gpsbuffer[120];
@@ -1930,7 +1928,7 @@ boolean Adafruit_FONA::getGSMLoc(float *lat, float *lon) {
 }
 
 // Open or close wireless data connection
-boolean Adafruit_FONA::openWirelessConnection(bool onoff) {
+boolean Botletics_modem::openWirelessConnection(bool onoff) {
   if (!onoff) { // Disconnect wireless
     if (_type == SIM7070) {
       if (! sendCheckReply(F("AT+CNACT=0,0"), ok_reply)) return false;
@@ -1964,7 +1962,7 @@ boolean Adafruit_FONA::openWirelessConnection(bool onoff) {
 }
 
 // Query wireless connection status
-boolean Adafruit_FONA::wirelessConnStatus(void) {
+boolean Botletics_modem::wirelessConnStatus(void) {
   getReply(F("AT+CNACT?"));
   // Format of response:
   // +CNACT: <status>,<ip_addr>  (ex.SIM7000)
@@ -1977,7 +1975,7 @@ boolean Adafruit_FONA::wirelessConnStatus(void) {
   return true;
 }
 
-boolean Adafruit_FONA::postData(const char *request_type, const char *URL, const char *body, const char *token, uint32_t bodylen) {
+boolean Botletics_modem::postData(const char *request_type, const char *URL, const char *body, const char *token, uint32_t bodylen) {
   // NOTE: Need to open socket/enable GPRS before using this function
   // char auxStr[64];
 
@@ -2068,7 +2066,7 @@ boolean Adafruit_FONA::postData(const char *request_type, const char *URL, const
 }
 
 /********************************* HTTPS FUNCTION *********************************/
-boolean Adafruit_FONA::postData(const char *server, uint16_t port, const char *connType, const char *URL, const char *body) {
+boolean Botletics_modem::postData(const char *server, uint16_t port, const char *connType, const char *URL, const char *body) {
   // Sample request URL for SIM5320/7500/7600:
   // "GET /dweet/for/{deviceID}?temp={temp}&batt={batt} HTTP/1.1\r\nHost: dweet.io\r\n\r\n"
 
@@ -2210,13 +2208,13 @@ boolean Adafruit_FONA::postData(const char *server, uint16_t port, const char *c
   return (replyLen > 0);
 }
 
-boolean Adafruit_FONA_LTE::HTTP_connect(const char *server) {
+boolean Botletics_modem_LTE::HTTP_connect(const char *server) {
   // Set up server URL
   char urlBuff[100];
 
   sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
 
-  if (SSL_FONA) {
+  if (BOTLETICS_SSL) {
     sendCheckReply(F("AT+CSSLCFG=\"sslversion\",1,3"), ok_reply);
     sendCheckReply(F("AT+SHSSL=1,\"\""), ok_reply, 10000);
   }
@@ -2249,9 +2247,9 @@ boolean Adafruit_FONA_LTE::HTTP_connect(const char *server) {
   return true;
 }
 
-boolean Adafruit_FONA_LTE::HTTP_GET(const char *URI) {
-  // Use fona.HTTP_addHeader() as needed before using this function
-  // Then use fona.HTTP_connect() to connect to the server first
+boolean Botletics_modem_LTE::HTTP_GET(const char *URI) {
+  // Use .HTTP_addHeader() as needed before using this function
+  // Then use .HTTP_connect() to connect to the server first
   char cmdBuff[150];
 
   sprintf(cmdBuff, "AT+SHREQ=\"%s\",1", URI);
@@ -2286,9 +2284,9 @@ boolean Adafruit_FONA_LTE::HTTP_GET(const char *URI) {
   return true;
 }
 
-boolean Adafruit_FONA_LTE::HTTP_POST(const char *URI, const char *body, uint8_t bodylen) {
-  // Use fona.HTTP_addHeader() as needed before using this function
-  // Then use fona.HTTP_connect() to connect to the server first
+boolean Botletics_modem_LTE::HTTP_POST(const char *URI, const char *body, uint8_t bodylen) {
+  // Use .HTTP_addHeader() as needed before using this function
+  // Then use .HTTP_connect() to connect to the server first
   char cmdBuff[150]; // Make sure this is large enough for URI
 
   // Example 2 in HTTP(S) app note for SIM7070 POST request
@@ -2341,7 +2339,7 @@ boolean Adafruit_FONA_LTE::HTTP_POST(const char *URI, const char *body, uint8_t 
 }
 
 /********* FTP FUNCTIONS  ************************************/
-boolean Adafruit_FONA::FTP_Connect(const char* serverIP, uint16_t port, const char* username, const char* password) {
+boolean Botletics_modem::FTP_Connect(const char* serverIP, uint16_t port, const char* username, const char* password) {
   char auxStr[100];
 
   // if (! sendCheckReply(F("AT+FTPCID=1"), ok_reply, 10000))
@@ -2378,14 +2376,14 @@ boolean Adafruit_FONA::FTP_Connect(const char* serverIP, uint16_t port, const ch
   return true;
 }
 
-boolean Adafruit_FONA::FTP_Quit() {
+boolean Botletics_modem::FTP_Quit() {
   if (! sendCheckReply(F("AT+FTPQUIT"), ok_reply, 10000))
     return false;
 
   return true;
 }
 
-boolean Adafruit_FONA::FTP_Rename(const char* filePath, const char* oldName, const char* newName) {
+boolean Botletics_modem::FTP_Rename(const char* filePath, const char* oldName, const char* newName) {
   char auxStr[50];
 
   sprintf(auxStr, "AT+FTPGETPATH=\"%s\"", filePath);
@@ -2411,7 +2409,7 @@ boolean Adafruit_FONA::FTP_Rename(const char* filePath, const char* oldName, con
   return true;
 }
 
-boolean Adafruit_FONA::FTP_Delete(const char* fileName, const char* filePath) {
+boolean Botletics_modem::FTP_Delete(const char* fileName, const char* filePath) {
   char auxStr[50];
 
   sprintf(auxStr, "AT+FTPGETNAME=\"%s\"", fileName);
@@ -2432,8 +2430,8 @@ boolean Adafruit_FONA::FTP_Delete(const char* fileName, const char* filePath) {
   return true;
 }
 
-// boolean Adafruit_FONA::FTP_MDTM(const char* fileName, const char* filePath, char & timestamp) {
-boolean Adafruit_FONA::FTP_MDTM(const char* fileName, const char* filePath, uint16_t* year,
+// boolean Botletics_modem::FTP_MDTM(const char* fileName, const char* filePath, char & timestamp) {
+boolean Botletics_modem::FTP_MDTM(const char* fileName, const char* filePath, uint16_t* year,
                                 uint8_t* month, uint8_t* day, uint8_t* hour, uint8_t* minute, uint8_t* second) {
   char auxStr[50];
 
@@ -2483,7 +2481,7 @@ boolean Adafruit_FONA::FTP_MDTM(const char* fileName, const char* filePath, uint
   return true;
 }
 
-const char * Adafruit_FONA::FTP_GET(const char* fileName, const char* filePath, uint16_t numBytes) {
+const char * Botletics_modem::FTP_GET(const char* fileName, const char* filePath, uint16_t numBytes) {
   char auxStr[100];
   const char *err = "error";
 
@@ -2523,7 +2521,7 @@ const char * Adafruit_FONA::FTP_GET(const char* fileName, const char* filePath, 
   return replybuffer;
 }
 
-boolean Adafruit_FONA::FTP_PUT(const char* fileName, const char* filePath, char* content, size_t numBytes) {
+boolean Botletics_modem::FTP_PUT(const char* fileName, const char* filePath, char* content, size_t numBytes) {
   char auxStr[100];
 
   sprintf(auxStr, "AT+FTPPUTNAME=\"%s\"", fileName);
@@ -2629,7 +2627,7 @@ boolean Adafruit_FONA::FTP_PUT(const char* fileName, const char* filePath, char*
 /********* MQTT FUNCTIONS  ************************************/
 
 ////////////////////////////////////////////////////////////
-void Adafruit_FONA::mqtt_connect_message(const char *protocol, byte *mqtt_message, const char *clientID, const char *username, const char *password) {
+void Botletics_modem::mqtt_connect_message(const char *protocol, byte *mqtt_message, const char *clientID, const char *username, const char *password) {
   uint8_t i = 0;
   byte protocol_length = strlen(protocol);
   byte ID_length = strlen(clientID);
@@ -2702,7 +2700,7 @@ void Adafruit_FONA::mqtt_connect_message(const char *protocol, byte *mqtt_messag
   }
 }
 
-void Adafruit_FONA::mqtt_publish_message(byte *mqtt_message, const char *topic, const char *message) {
+void Botletics_modem::mqtt_publish_message(byte *mqtt_message, const char *topic, const char *message) {
   uint8_t i = 0;
   byte topic_length = strlen(topic);
   byte message_length = strlen(message);
@@ -2723,7 +2721,7 @@ void Adafruit_FONA::mqtt_publish_message(byte *mqtt_message, const char *topic, 
   }
 }
 
-void Adafruit_FONA::mqtt_subscribe_message(byte *mqtt_message, const char *topic, byte QoS) {
+void Botletics_modem::mqtt_subscribe_message(byte *mqtt_message, const char *topic, byte QoS) {
   uint8_t i = 0;
   byte topic_length = strlen(topic);
 
@@ -2742,12 +2740,12 @@ void Adafruit_FONA::mqtt_subscribe_message(byte *mqtt_message, const char *topic
   mqtt_message[6 + topic_length] = QoS;   // QoS byte
 }
 
-void Adafruit_FONA::mqtt_disconnect_message(byte *mqtt_message) {
+void Botletics_modem::mqtt_disconnect_message(byte *mqtt_message) {
   mqtt_message[0] = 0xE0; // msgtype = connect
   mqtt_message[1] = 0x00; // length of message (?)
 }
 
-boolean Adafruit_FONA::mqtt_sendPacket(byte *packet, byte len) {
+boolean Botletics_modem::mqtt_sendPacket(byte *packet, byte len) {
   // Send packet and get response
   DEBUG_PRINT(F("\t---> "));
 
@@ -2769,7 +2767,7 @@ boolean Adafruit_FONA::mqtt_sendPacket(byte *packet, byte len) {
 
 ////////////////////////////////////////////////////////////
 
-boolean Adafruit_FONA::MQTTconnect(const char *protocol, const char *clientID, const char *username, const char *password) {
+boolean Botletics_modem::MQTTconnect(const char *protocol, const char *clientID, const char *username, const char *password) {
   flushInput();
   mySerial->println(F("AT+CIPSEND"));
   readline();
@@ -2785,7 +2783,7 @@ boolean Adafruit_FONA::MQTTconnect(const char *protocol, const char *clientID, c
   return true;
 }
 
-boolean Adafruit_FONA::MQTTpublish(const char* topic, const char* message) {
+boolean Botletics_modem::MQTTpublish(const char* topic, const char* message) {
   flushInput();
   mySerial->println(F("AT+CIPSEND"));
   readline();
@@ -2800,7 +2798,7 @@ boolean Adafruit_FONA::MQTTpublish(const char* topic, const char* message) {
   return true;
 }
 
-boolean Adafruit_FONA::MQTTsubscribe(const char* topic, byte QoS) {
+boolean Botletics_modem::MQTTsubscribe(const char* topic, byte QoS) {
   flushInput();
   mySerial->println(F("AT+CIPSEND"));
   readline();
@@ -2815,15 +2813,15 @@ boolean Adafruit_FONA::MQTTsubscribe(const char* topic, byte QoS) {
   return true;
 }
 
-boolean Adafruit_FONA::MQTTunsubscribe(const char* topic) {
+boolean Botletics_modem::MQTTunsubscribe(const char* topic) {
   return false;
 }
 
-boolean Adafruit_FONA::MQTTreceive(const char* topic, const char* buf, int maxlen) {
+boolean Botletics_modem::MQTTreceive(const char* topic, const char* buf, int maxlen) {
   return false;
 }
 
-boolean Adafruit_FONA::MQTTdisconnect(void) {
+boolean Botletics_modem::MQTTdisconnect(void) {
   return false;
 }
 
@@ -2831,7 +2829,7 @@ boolean Adafruit_FONA::MQTTdisconnect(void) {
 // Set MQTT parameters
 // Parameter tags can be "CLIENTID", "URL", "KEEPTIME", "CLEANSS", "USERNAME",
 // "PASSWORD", "QOS", "TOPIC", "MESSAGE", or "RETAIN"
-boolean Adafruit_FONA_LTE::MQTT_setParameter(const char* paramTag, const char* paramValue, uint16_t port) {
+boolean Botletics_modem_LTE::MQTT_setParameter(const char* paramTag, const char* paramValue, uint16_t port) {
   char cmdStr[255];
 
   if (port == 0) sprintf(cmdStr, "AT+SMCONF=\"%s\",\"%s\"", paramTag, paramValue); // Quoted paramValue
@@ -2852,20 +2850,20 @@ boolean Adafruit_FONA_LTE::MQTT_setParameter(const char* paramTag, const char* p
 }
 
 // Connect or disconnect MQTT
-boolean Adafruit_FONA_LTE::MQTT_connect(bool yesno) {
+boolean Botletics_modem_LTE::MQTT_connect(bool yesno) {
   if (yesno) return sendCheckReply(F("AT+SMCONN"), ok_reply, 5000);
   else return sendCheckReply(F("AT+SMDISC"), ok_reply);
 }
 
 // Query MQTT connection status
-boolean Adafruit_FONA_LTE::MQTT_connectionStatus(void) {
+boolean Botletics_modem_LTE::MQTT_connectionStatus(void) {
   if (! sendCheckReply(F("AT+SMSTATE?"), F("+SMSTATE: 1"))) return false;
   return true;
 }
 
 // Subscribe to specified MQTT topic
 // QoS can be from 0-2
-boolean Adafruit_FONA_LTE::MQTT_subscribe(const char* topic, byte QoS) {
+boolean Botletics_modem_LTE::MQTT_subscribe(const char* topic, byte QoS) {
   char cmdStr[127];
   sprintf(cmdStr, "AT+SMSUB=\"%s\",%i", topic, QoS);
 
@@ -2874,7 +2872,7 @@ boolean Adafruit_FONA_LTE::MQTT_subscribe(const char* topic, byte QoS) {
 }
 
 // Unsubscribe from specified MQTT topic
-boolean Adafruit_FONA_LTE::MQTT_unsubscribe(const char* topic) {
+boolean Botletics_modem_LTE::MQTT_unsubscribe(const char* topic) {
   char cmdStr[64];
   sprintf(cmdStr, "AT+SMUNSUB=\"%s\"", topic);
   if (! sendCheckReply(cmdStr, ok_reply)) return false;
@@ -2885,7 +2883,7 @@ boolean Adafruit_FONA_LTE::MQTT_unsubscribe(const char* topic) {
 // Message length can be from 0-512 bytes
 // QoS can be from 0-2
 // Server hold message flag can be 0 or 1
-boolean Adafruit_FONA_LTE::MQTT_publish(const char* topic, const char* message, uint16_t contentLength, byte QoS, byte retain) {
+boolean Botletics_modem_LTE::MQTT_publish(const char* topic, const char* message, uint16_t contentLength, byte QoS, byte retain) {
   char cmdStr[127];
   sprintf(cmdStr, "AT+SMPUB=\"%s\",%i,%i,%i", topic, contentLength, QoS, retain);
 
@@ -2898,23 +2896,23 @@ boolean Adafruit_FONA_LTE::MQTT_publish(const char* topic, const char* message, 
 
 // Change MQTT data format to hex
 // Enter "true" if you want hex, "false" if you don't
-boolean Adafruit_FONA_LTE::MQTT_dataFormatHex(bool yesno) {
+boolean Botletics_modem_LTE::MQTT_dataFormatHex(bool yesno) {
   return sendCheckReply(F("AT+SMPUBHEX="), yesno, ok_reply);
 }
 
 /********* SSL FUNCTIONS  ************************************/
-boolean Adafruit_FONA::addRootCA(const char *root_cert) {
+boolean Botletics_modem::addRootCA(const char *root_cert) {
   char rootCA[10240];
   strcpy(rootCA,root_cert);
-  rootCA_FONA = rootCA;
-  if (!strlen(rootCA_FONA)) return false;
+  _rootCA = rootCA;
+  if (!strlen(_rootCA)) return false;
 
   return true;
 }
 
 /********* UDP FUNCTIONS  ************************************/
 
-boolean Adafruit_FONA::UDPconnect(char *server, uint16_t port) {
+boolean Botletics_modem::UDPconnect(char *server, uint16_t port) {
   flushInput();
 
   // close all old connections
@@ -2950,8 +2948,8 @@ boolean Adafruit_FONA::UDPconnect(char *server, uint16_t port) {
 /**************** TCP FUNCTIONS + SSL *************************/
 
 
-boolean Adafruit_FONA::TCPconnect(char *server, uint16_t port) {
-  if (SSL_FONA) {
+boolean Botletics_modem::TCPconnect(char *server, uint16_t port) {
+  if (BOTLETICS_SSL) {
     flushInput();
 
     //  Report Mobile Equipment Error
@@ -2962,7 +2960,7 @@ boolean Adafruit_FONA::TCPconnect(char *server, uint16_t port) {
 
     //Set TCP/UDP Identifier
     if (! sendCheckReply(F("AT+CACID=1"), ok_reply) ) return false;
-    CID_CA_FONA = 1;
+    _CID_CA = 1;
 
     //Configure SSL Parameters of a Context Identifier
     if (! sendCheckReply(F("AT+CSSLCFG=\"sslversion\",1,3"), ok_reply) ) return false;
@@ -2975,14 +2973,14 @@ boolean Adafruit_FONA::TCPconnect(char *server, uint16_t port) {
 
     //Load CA
     mySerial->print(F("AT+CFSWFILE=3,\"ca.crt\",0,\""));
-    mySerial->print(strlen(rootCA_FONA));
+    mySerial->print(strlen(_rootCA));
     mySerial->print(F("\",\""));
     mySerial->print(5000);
     mySerial->println(F("\""));
 
     if (! expectReply(F("DOWNLOAD"))) return false;
 
-    mySerial->print(rootCA_FONA);
+    mySerial->print(_rootCA);
     readline(2000, true);
     if (!((replybuffer[0] == 'O') && (replybuffer[1] == 'K'))) return false;
 
@@ -2991,7 +2989,7 @@ boolean Adafruit_FONA::TCPconnect(char *server, uint16_t port) {
     if (! sendCheckReply(F("AT+CFSINIT"), ok_reply) ) return false;
 
     char CF[20] = "+CFSGFIS: ";
-    itoa((int)strlen(rootCA_FONA), CF+10, 10);
+    itoa((int)strlen(_rootCA), CF+10, 10);
 
     // if (! sendCheckReply(F("AT+CFSGFIS=3,\"ca.crt\""), (char*)CF, 300)) return false; // Get cert file size
     if (! sendCheckReply(F("AT+CFSTERM"), ok_reply) ) return false;
@@ -3009,8 +3007,8 @@ boolean Adafruit_FONA::TCPconnect(char *server, uint16_t port) {
 
     char server_f[100];
     strcpy(server_f,server);
-    server_CA_FONA = server_f;
-    port_CA_FONA = port;
+    _server_CA = server_f;
+    _port_CA = port;
 
     mySerial->print(F("AT+CAOPEN=1,\""));
     mySerial->print(server);
@@ -3053,20 +3051,20 @@ boolean Adafruit_FONA::TCPconnect(char *server, uint16_t port) {
   return true;
 }
 
-boolean Adafruit_FONA::TCPclose(void) {
+boolean Botletics_modem::TCPclose(void) {
   return sendCheckReply(F("AT+CIPCLOSE"), F("CLOSE OK"));
 }
 
-boolean Adafruit_FONA::TCPconnected(void) {
-  if (SSL_FONA) {
+boolean Botletics_modem::TCPconnected(void) {
+  if (BOTLETICS_SSL) {
     char CA[100] = "+CAOPEN: ";
-    itoa(CID_CA_FONA, CA+9, 10);
+    itoa(_CID_CA, CA+9, 10);
     strcat(CA,",\"");
-    strcat(CA,server_CA_FONA);
+    strcat(CA,_server_CA);
     strcat(CA,"\",");
-    char port_CA_FONA_p[10];
-    itoa((int)port_CA_FONA,port_CA_FONA_p, 10);
-    strcat(CA,port_CA_FONA_p);
+    char _port_CA_p[10];
+    itoa((int)_port_CA,_port_CA_p, 10);
+    strcat(CA,_port_CA_p);
 
     getReply(F("AT+CAOPEN?"));
 
@@ -3082,11 +3080,11 @@ boolean Adafruit_FONA::TCPconnected(void) {
   return (strcmp(replybuffer, "STATE: CONNECT OK") == 0);
 }
 
-boolean Adafruit_FONA::TCPsend(char *packet, uint8_t len) {
+boolean Botletics_modem::TCPsend(char *packet, uint8_t len) {
 
   DEBUG_PRINT(F("AT+CIPSEND="));
   DEBUG_PRINTLN(len);
-#ifdef ADAFRUIT_FONA_DEBUG
+#ifdef BOTLETICS_MODEM_DEBUG
   for (uint16_t i=0; i<len; i++) {
   DEBUG_PRINT(F(" 0x"));
   DEBUG_PRINT(packet[i], HEX);
@@ -3094,7 +3092,7 @@ boolean Adafruit_FONA::TCPsend(char *packet, uint8_t len) {
 #endif
   DEBUG_PRINTLN();
 
-  if (SSL_FONA) {
+  if (BOTLETICS_SSL) {
     flushInput();
     mySerial->print(F("AT+CASEND=1,\""));
     mySerial->print(len);
@@ -3116,11 +3114,11 @@ boolean Adafruit_FONA::TCPsend(char *packet, uint8_t len) {
 
   DEBUG_PRINT (F("\t<--- ")); DEBUG_PRINTLN(replybuffer);
 
-  if (SSL_FONA) return (strcmp(replybuffer, "OK") == 0);
+  if (BOTLETICS_SSL) return (strcmp(replybuffer, "OK") == 0);
   else return (strcmp(replybuffer, "SEND OK") == 0);
 }
 
-uint16_t Adafruit_FONA::TCPavailable(void) {
+uint16_t Botletics_modem::TCPavailable(void) {
   uint16_t avail;
 
   if (! sendParseReply(F("AT+CIPRXGET=4"), F("+CIPRXGET: 4,"), &avail, ',', 0) ) return false;
@@ -3133,7 +3131,7 @@ uint16_t Adafruit_FONA::TCPavailable(void) {
 }
 
 
-uint16_t Adafruit_FONA::TCPread(uint8_t *buff, uint8_t len) {
+uint16_t Botletics_modem::TCPread(uint8_t *buff, uint8_t len) {
   uint16_t avail;
 
   mySerial->print(F("AT+CIPRXGET=2,"));
@@ -3143,7 +3141,7 @@ uint16_t Adafruit_FONA::TCPread(uint8_t *buff, uint8_t len) {
 
   readRaw(avail);
 
-#ifdef ADAFRUIT_FONA_DEBUG
+#ifdef BOTLETICS_MODEM_DEBUG
   DEBUG_PRINT (avail); DEBUG_PRINTLN(F(" bytes read"));
   for (uint8_t i=0;i<avail;i++) {
   DEBUG_PRINT(F(" 0x")); DEBUG_PRINT(replybuffer[i], HEX);
@@ -3156,7 +3154,7 @@ uint16_t Adafruit_FONA::TCPread(uint8_t *buff, uint8_t len) {
   return avail;
 }
 
-boolean Adafruit_FONA::TCPdns(char *hostname, char *buff, uint8_t len) {
+boolean Botletics_modem::TCPdns(char *hostname, char *buff, uint8_t len) {
   mySerial->print(F("AT+CDNSGIP="));
   mySerial->println(hostname);
 
@@ -3175,15 +3173,15 @@ boolean Adafruit_FONA::TCPdns(char *hostname, char *buff, uint8_t len) {
 
 /********* HTTP LOW LEVEL FUNCTIONS  ************************************/
 
-boolean Adafruit_FONA::HTTP_init() {
+boolean Botletics_modem::HTTP_init() {
   return sendCheckReply(F("AT+HTTPINIT"), ok_reply);
 }
 
-boolean Adafruit_FONA::HTTP_term() {
+boolean Botletics_modem::HTTP_term() {
   return sendCheckReply(F("AT+HTTPTERM"), ok_reply);
 }
 
-void Adafruit_FONA::HTTP_para_start(FONAFlashStringPtr parameter,
+void Botletics_modem::HTTP_para_start(FStringPtr parameter,
                                     boolean quoted) {
   flushInput();
 
@@ -3202,7 +3200,7 @@ void Adafruit_FONA::HTTP_para_start(FONAFlashStringPtr parameter,
     mySerial->print(F("\","));
 }
 
-boolean Adafruit_FONA::HTTP_para_end(boolean quoted) {
+boolean Botletics_modem::HTTP_para_end(boolean quoted) {
   if (quoted)
     mySerial->println('"');
   else
@@ -3211,28 +3209,28 @@ boolean Adafruit_FONA::HTTP_para_end(boolean quoted) {
   return expectReply(ok_reply);
 }
 
-boolean Adafruit_FONA::HTTP_para(FONAFlashStringPtr parameter,
+boolean Botletics_modem::HTTP_para(FStringPtr parameter,
                                  const char *value) {
   HTTP_para_start(parameter, true);
   mySerial->print(value);
   return HTTP_para_end(true);
 }
 
-boolean Adafruit_FONA::HTTP_para(FONAFlashStringPtr parameter,
-                                 FONAFlashStringPtr value) {
+boolean Botletics_modem::HTTP_para(FStringPtr parameter,
+                                 FStringPtr value) {
   HTTP_para_start(parameter, true);
   mySerial->print(value);
   return HTTP_para_end(true);
 }
 
-boolean Adafruit_FONA::HTTP_para(FONAFlashStringPtr parameter,
+boolean Botletics_modem::HTTP_para(FStringPtr parameter,
                                  int32_t value) {
   HTTP_para_start(parameter, false);
   mySerial->print(value);
   return HTTP_para_end(false);
 }
 
-boolean Adafruit_FONA::HTTP_data(uint32_t size, uint32_t maxTime) {
+boolean Botletics_modem::HTTP_data(uint32_t size, uint32_t maxTime) {
   flushInput();
 
 
@@ -3251,7 +3249,7 @@ boolean Adafruit_FONA::HTTP_data(uint32_t size, uint32_t maxTime) {
   return expectReply(F("DOWNLOAD"));
 }
 
-boolean Adafruit_FONA::HTTP_action(uint8_t method, uint16_t *status,
+boolean Botletics_modem::HTTP_action(uint8_t method, uint16_t *status,
                                    uint16_t *datalen, int32_t timeout) {
   // Send request.
   if (! sendCheckReply(F("AT+HTTPACTION="), method, ok_reply))
@@ -3267,7 +3265,7 @@ boolean Adafruit_FONA::HTTP_action(uint8_t method, uint16_t *status,
   return true;
 }
 
-boolean Adafruit_FONA::HTTP_readall(uint16_t *datalen) {
+boolean Botletics_modem::HTTP_readall(uint16_t *datalen) {
   getReply(F("AT+HTTPREAD"));
   if (! parseReply(F("+HTTPREAD:"), datalen, ',', 0))
     return false;
@@ -3275,11 +3273,11 @@ boolean Adafruit_FONA::HTTP_readall(uint16_t *datalen) {
   return true;
 }
 
-boolean Adafruit_FONA::HTTP_ssl(boolean onoff) {
+boolean Botletics_modem::HTTP_ssl(boolean onoff) {
   return sendCheckReply(F("AT+HTTPSSL="), onoff ? 1 : 0, ok_reply);
 }
 
-boolean Adafruit_FONA_LTE::HTTP_addHeader(const char *type, const char *value, uint16_t maxlen) {
+boolean Botletics_modem_LTE::HTTP_addHeader(const char *type, const char *value, uint16_t maxlen) {
   char cmdStr[2*maxlen+17];
 
   sprintf(cmdStr, "AT+SHAHEAD=\"%s\",\"%s\"", type, value);
@@ -3289,7 +3287,7 @@ boolean Adafruit_FONA_LTE::HTTP_addHeader(const char *type, const char *value, u
   return true;
 }
 
-boolean Adafruit_FONA_LTE::HTTP_addPara(const char *key, const char *value, uint16_t maxlen) {
+boolean Botletics_modem_LTE::HTTP_addPara(const char *key, const char *value, uint16_t maxlen) {
   char cmdStr[2*maxlen+16];
 
   sprintf(cmdStr, "AT+SHPARA=\"%s\",\"%s\"", key, value);
@@ -3301,12 +3299,12 @@ boolean Adafruit_FONA_LTE::HTTP_addPara(const char *key, const char *value, uint
 
 /********* HTTP HIGH LEVEL FUNCTIONS ***************************/
 
-boolean Adafruit_FONA::HTTP_GET_start(char *url, uint16_t *status, uint16_t *datalen) {
+boolean Botletics_modem::HTTP_GET_start(char *url, uint16_t *status, uint16_t *datalen) {
   if (! HTTP_setup(url))
     return false;
 
   // HTTP GET
-  if (! HTTP_action(FONA_HTTP_GET, status, datalen, 30000))
+  if (! HTTP_action(_HTTP_GET, status, datalen, 30000))
     return false;
 
   DEBUG_PRINT(F("Status: ")); DEBUG_PRINTLN(*status);
@@ -3320,7 +3318,7 @@ boolean Adafruit_FONA::HTTP_GET_start(char *url, uint16_t *status, uint16_t *dat
 }
 
 /*
-boolean Adafruit_FONA_3G::HTTP_GET_start(char *ipaddr, char *path, uint16_t port
+boolean Botletics_modem_3G::HTTP_GET_start(char *ipaddr, char *path, uint16_t port
               uint16_t *status, uint16_t *datalen){
   char send[100] = "AT+CHTTPACT=\"";
   char *sendp = send + strlen(send);
@@ -3341,7 +3339,7 @@ boolean Adafruit_FONA_3G::HTTP_GET_start(char *ipaddr, char *path, uint16_t port
     return false;
 
   // HTTP GET
-  if (! HTTP_action(FONA_HTTP_GET, status, datalen))
+  if (! HTTP_action(_HTTP_GET, status, datalen))
     return false;
 
   DEBUG_PRINT("Status: "); DEBUG_PRINTLN(*status);
@@ -3355,12 +3353,12 @@ boolean Adafruit_FONA_3G::HTTP_GET_start(char *ipaddr, char *path, uint16_t port
 }
 */
 
-void Adafruit_FONA::HTTP_GET_end(void) {
+void Botletics_modem::HTTP_GET_end(void) {
   HTTP_term();
 }
 
-boolean Adafruit_FONA::HTTP_POST_start(char *url,
-              FONAFlashStringPtr contenttype,
+boolean Botletics_modem::HTTP_POST_start(char *url,
+              FStringPtr contenttype,
               const uint8_t *postdata, uint16_t postdatalen,
               uint16_t *status, uint16_t *datalen){
   if (! HTTP_setup(url))
@@ -3378,7 +3376,7 @@ boolean Adafruit_FONA::HTTP_POST_start(char *url,
     return false;
 
   // HTTP POST
-  if (! HTTP_action(FONA_HTTP_POST, status, datalen))
+  if (! HTTP_action(_HTTP_POST, status, datalen))
     return false;
 
   DEBUG_PRINT(F("Status: ")); DEBUG_PRINTLN(*status);
@@ -3391,21 +3389,21 @@ boolean Adafruit_FONA::HTTP_POST_start(char *url,
   return true;
 }
 
-void Adafruit_FONA::HTTP_POST_end(void) {
+void Botletics_modem::HTTP_POST_end(void) {
   HTTP_term();
 }
 
-void Adafruit_FONA::setUserAgent(FONAFlashStringPtr useragent) {
+void Botletics_modem::setUserAgent(FStringPtr useragent) {
   this->useragent = useragent;
 }
 
-void Adafruit_FONA::setHTTPSRedirect(boolean onoff) {
+void Botletics_modem::setHTTPSRedirect(boolean onoff) {
   httpsredirect = onoff;
 }
 
 /********* HTTP HELPERS ****************************************/
 
-boolean Adafruit_FONA::HTTP_setup(char *url) {
+boolean Botletics_modem::HTTP_setup(char *url) {
   // Handle any pending
   HTTP_term();
 
@@ -3433,7 +3431,7 @@ boolean Adafruit_FONA::HTTP_setup(char *url) {
 
 /********* HELPERS *********************************************/
 
-boolean Adafruit_FONA::expectReply(FONAFlashStringPtr reply,
+boolean Botletics_modem::expectReply(FStringPtr reply,
                                    uint16_t timeout) {
   readline(timeout);
 
@@ -3444,27 +3442,27 @@ boolean Adafruit_FONA::expectReply(FONAFlashStringPtr reply,
 
 /********* LOW LEVEL *******************************************/
 
-inline int Adafruit_FONA::available(void) {
+inline int Botletics_modem::available(void) {
   return mySerial->available();
 }
 
-inline size_t Adafruit_FONA::write(uint8_t x) {
+inline size_t Botletics_modem::write(uint8_t x) {
   return mySerial->write(x);
 }
 
-inline int Adafruit_FONA::read(void) {
+inline int Botletics_modem::read(void) {
   return mySerial->read();
 }
 
-inline int Adafruit_FONA::peek(void) {
+inline int Botletics_modem::peek(void) {
   return mySerial->peek();
 }
 
-inline void Adafruit_FONA::flush() {
+inline void Botletics_modem::flush() {
   mySerial->flush();
 }
 
-void Adafruit_FONA::flushInput() {
+void Botletics_modem::flushInput() {
     // Read all available serial input to flush pending data.
     uint16_t timeoutloop = 0;
     while (timeoutloop++ < 40) {
@@ -3476,7 +3474,7 @@ void Adafruit_FONA::flushInput() {
     }
 }
 
-uint16_t Adafruit_FONA::readRaw(uint16_t b) {
+uint16_t Botletics_modem::readRaw(uint16_t b) {
   uint16_t idx = 0;
 
   while (b && (idx < sizeof(replybuffer)-1)) {
@@ -3491,7 +3489,7 @@ uint16_t Adafruit_FONA::readRaw(uint16_t b) {
   return idx;
 }
 
-uint8_t Adafruit_FONA::readline(uint16_t timeout, boolean multiline) {
+uint8_t Botletics_modem::readline(uint16_t timeout, boolean multiline) {
   uint16_t replyidx = 0;
 
   while (timeout--) {
@@ -3529,7 +3527,7 @@ uint8_t Adafruit_FONA::readline(uint16_t timeout, boolean multiline) {
   return replyidx;
 }
 
-uint8_t Adafruit_FONA::getReply(const char *send, uint16_t timeout) {
+uint8_t Botletics_modem::getReply(const char *send, uint16_t timeout) {
   flushInput();
 
 
@@ -3545,7 +3543,7 @@ uint8_t Adafruit_FONA::getReply(const char *send, uint16_t timeout) {
   return l;
 }
 
-uint8_t Adafruit_FONA::getReply(FONAFlashStringPtr send, uint16_t timeout) {
+uint8_t Botletics_modem::getReply(FStringPtr send, uint16_t timeout) {
   flushInput();
 
 
@@ -3562,7 +3560,7 @@ uint8_t Adafruit_FONA::getReply(FONAFlashStringPtr send, uint16_t timeout) {
 }
 
 // Send prefix, suffix, and newline. Return response (and also set replybuffer with response).
-uint8_t Adafruit_FONA::getReply(FONAFlashStringPtr prefix, char *suffix, uint16_t timeout) {
+uint8_t Botletics_modem::getReply(FStringPtr prefix, char *suffix, uint16_t timeout) {
   flushInput();
 
 
@@ -3580,7 +3578,7 @@ uint8_t Adafruit_FONA::getReply(FONAFlashStringPtr prefix, char *suffix, uint16_
 }
 
 // Send prefix, suffix, and newline. Return response (and also set replybuffer with response).
-uint8_t Adafruit_FONA::getReply(FONAFlashStringPtr prefix, int32_t suffix, uint16_t timeout) {
+uint8_t Botletics_modem::getReply(FStringPtr prefix, int32_t suffix, uint16_t timeout) {
   flushInput();
 
 
@@ -3598,7 +3596,7 @@ uint8_t Adafruit_FONA::getReply(FONAFlashStringPtr prefix, int32_t suffix, uint1
 }
 
 // Send prefix, suffix, suffix2, and newline. Return response (and also set replybuffer with response).
-uint8_t Adafruit_FONA::getReply(FONAFlashStringPtr prefix, int32_t suffix1, int32_t suffix2, uint16_t timeout) {
+uint8_t Botletics_modem::getReply(FStringPtr prefix, int32_t suffix1, int32_t suffix2, uint16_t timeout) {
   flushInput();
 
 
@@ -3619,7 +3617,7 @@ uint8_t Adafruit_FONA::getReply(FONAFlashStringPtr prefix, int32_t suffix1, int3
 }
 
 // Send prefix, ", suffix, ", and newline. Return response (and also set replybuffer with response).
-uint8_t Adafruit_FONA::getReplyQuoted(FONAFlashStringPtr prefix, FONAFlashStringPtr suffix, uint16_t timeout) {
+uint8_t Botletics_modem::getReplyQuoted(FStringPtr prefix, FStringPtr suffix, uint16_t timeout) {
   flushInput();
 
 
@@ -3639,7 +3637,7 @@ uint8_t Adafruit_FONA::getReplyQuoted(FONAFlashStringPtr prefix, FONAFlashString
   return l;
 }
 
-boolean Adafruit_FONA::sendCheckReply(const char *send, const char *reply, uint16_t timeout) {
+boolean Botletics_modem::sendCheckReply(const char *send, const char *reply, uint16_t timeout) {
   if (! getReply(send, timeout) )
     return false;
 /*
@@ -3655,46 +3653,46 @@ boolean Adafruit_FONA::sendCheckReply(const char *send, const char *reply, uint1
   return (strcmp(replybuffer, reply) == 0);
 }
 
-boolean Adafruit_FONA::sendCheckReply(FONAFlashStringPtr send, FONAFlashStringPtr reply, uint16_t timeout) {
+boolean Botletics_modem::sendCheckReply(FStringPtr send, FStringPtr reply, uint16_t timeout) {
   if (! getReply(send, timeout) )
     return false;
 
   return (prog_char_strcmp(replybuffer, (prog_char*)reply) == 0);
 }
 
-boolean Adafruit_FONA::sendCheckReply(const char* send, FONAFlashStringPtr reply, uint16_t timeout) {
+boolean Botletics_modem::sendCheckReply(const char* send, FStringPtr reply, uint16_t timeout) {
   if (! getReply(send, timeout) )
     return false;
   return (prog_char_strcmp(replybuffer, (prog_char*)reply) == 0);
 }
 
 
-// Send prefix, suffix, and newline.  Verify FONA response matches reply parameter.
-boolean Adafruit_FONA::sendCheckReply(FONAFlashStringPtr prefix, char *suffix, FONAFlashStringPtr reply, uint16_t timeout) {
+// Send prefix, suffix, and newline.  Verify modem response matches reply parameter.
+boolean Botletics_modem::sendCheckReply(FStringPtr prefix, char *suffix, FStringPtr reply, uint16_t timeout) {
   getReply(prefix, suffix, timeout);
   return (prog_char_strcmp(replybuffer, (prog_char*)reply) == 0);
 }
 
-// Send prefix, suffix, and newline.  Verify FONA response matches reply parameter.
-boolean Adafruit_FONA::sendCheckReply(FONAFlashStringPtr prefix, int32_t suffix, FONAFlashStringPtr reply, uint16_t timeout) {
+// Send prefix, suffix, and newline.  Verify modem response matches reply parameter.
+boolean Botletics_modem::sendCheckReply(FStringPtr prefix, int32_t suffix, FStringPtr reply, uint16_t timeout) {
   getReply(prefix, suffix, timeout);
   return (prog_char_strcmp(replybuffer, (prog_char*)reply) == 0);
 }
 
-// Send prefix, suffix, suffix2, and newline.  Verify FONA response matches reply parameter.
-boolean Adafruit_FONA::sendCheckReply(FONAFlashStringPtr prefix, int32_t suffix1, int32_t suffix2, FONAFlashStringPtr reply, uint16_t timeout) {
+// Send prefix, suffix, suffix2, and newline.  Verify modem response matches reply parameter.
+boolean Botletics_modem::sendCheckReply(FStringPtr prefix, int32_t suffix1, int32_t suffix2, FStringPtr reply, uint16_t timeout) {
   getReply(prefix, suffix1, suffix2, timeout);
   return (prog_char_strcmp(replybuffer, (prog_char*)reply) == 0);
 }
 
-// Send prefix, ", suffix, ", and newline.  Verify FONA response matches reply parameter.
-boolean Adafruit_FONA::sendCheckReplyQuoted(FONAFlashStringPtr prefix, FONAFlashStringPtr suffix, FONAFlashStringPtr reply, uint16_t timeout) {
+// Send prefix, ", suffix, ", and newline.  Verify modem response matches reply parameter.
+boolean Botletics_modem::sendCheckReplyQuoted(FStringPtr prefix, FStringPtr suffix, FStringPtr reply, uint16_t timeout) {
   getReplyQuoted(prefix, suffix, timeout);
   return (prog_char_strcmp(replybuffer, (prog_char*)reply) == 0);
 }
 
 
-boolean Adafruit_FONA::parseReply(FONAFlashStringPtr toreply,
+boolean Botletics_modem::parseReply(FStringPtr toreply,
           uint16_t *v, char divider, uint8_t index) {
   char *p = prog_char_strstr(replybuffer, (prog_char*)toreply);  // get the pointer to the voltage
   if (p == 0) return false;
@@ -3713,7 +3711,7 @@ boolean Adafruit_FONA::parseReply(FONAFlashStringPtr toreply,
   return true;
 }
 
-boolean Adafruit_FONA::parseReply(FONAFlashStringPtr toreply,
+boolean Botletics_modem::parseReply(FStringPtr toreply,
           char *v, char divider, uint8_t index) {
   uint8_t i=0;
   char *p = prog_char_strstr(replybuffer, (prog_char*)toreply);
@@ -3742,7 +3740,7 @@ boolean Adafruit_FONA::parseReply(FONAFlashStringPtr toreply,
 // to the specified character array (v).  Only up to maxlen characters are copied
 // into the result buffer, so make sure to pass a large enough buffer to handle the
 // response.
-boolean Adafruit_FONA::parseReplyQuoted(FONAFlashStringPtr toreply,
+boolean Botletics_modem::parseReplyQuoted(FStringPtr toreply,
           char *v, int maxlen, char divider, uint8_t index) {
   uint8_t i=0, j;
   // Verify response starts with toreply.
@@ -3776,8 +3774,8 @@ boolean Adafruit_FONA::parseReplyQuoted(FONAFlashStringPtr toreply,
   return true;
 }
 
-boolean Adafruit_FONA::sendParseReply(FONAFlashStringPtr tosend,
-              FONAFlashStringPtr toreply,
+boolean Botletics_modem::sendParseReply(FStringPtr tosend,
+              FStringPtr toreply,
               uint16_t *v, char divider, uint8_t index) {
   getReply(tosend);
 
@@ -3788,7 +3786,7 @@ boolean Adafruit_FONA::sendParseReply(FONAFlashStringPtr tosend,
   return true;
 }
 
-boolean Adafruit_FONA::parseReplyFloat(FONAFlashStringPtr toreply,
+boolean Botletics_modem::parseReplyFloat(FStringPtr toreply,
           float *f, char divider, uint8_t index) {
   char *p = prog_char_strstr(replybuffer, (prog_char*)toreply);  // get the pointer to the voltage
   if (p == 0) return false;
@@ -3809,8 +3807,8 @@ boolean Adafruit_FONA::parseReplyFloat(FONAFlashStringPtr toreply,
 
 // needed for CBC and others
 
-boolean Adafruit_FONA::sendParseReplyFloat(FONAFlashStringPtr tosend,
-              FONAFlashStringPtr toreply,
+boolean Botletics_modem::sendParseReplyFloat(FStringPtr tosend,
+              FStringPtr toreply,
               float *f, char divider, uint8_t index) {
   getReply(tosend);
 
@@ -3824,8 +3822,8 @@ boolean Adafruit_FONA::sendParseReplyFloat(FONAFlashStringPtr tosend,
 
 // needed for CBC and others
 
-boolean Adafruit_FONA_3G::sendParseReply(FONAFlashStringPtr tosend,
-              FONAFlashStringPtr toreply,
+boolean Botletics_modem_3G::sendParseReply(FStringPtr tosend,
+              FStringPtr toreply,
               float *f, char divider, uint8_t index) {
   getReply(tosend);
 
@@ -3837,7 +3835,7 @@ boolean Adafruit_FONA_3G::sendParseReply(FONAFlashStringPtr tosend,
 }
 
 
-boolean Adafruit_FONA_3G::parseReply(FONAFlashStringPtr toreply,
+boolean Botletics_modem_3G::parseReply(FStringPtr toreply,
           float *f, char divider, uint8_t index) {
   char *p = prog_char_strstr(replybuffer, (prog_char*)toreply);  // get the pointer to the voltage
   if (p == 0) return false;

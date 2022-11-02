@@ -22,7 +22,7 @@
 
 /************************* PIN DEFINITIONS *********************************/
 // For botletics SIM70X0 shield
-#define FONA_PWRKEY 6
+#define BOTLETICS_PWRKEY 6
 #define FONA_RST 7
 //#define FONA_DTR 8 // Connect with solder jumper
 //#define FONA_RI 9 // Need to enable via AT commands
@@ -52,7 +52,7 @@ SoftwareSerial *fonaSerial = &fonaSS;
 //#include <HardwareSerial.h>
 //HardwareSerial fonaSS(1);
 
-Adafruit_FONA_LTE fona = Adafruit_FONA_LTE();
+Botletics_modem_LTE fona = Botletics_modem_LTE();
 
 /************************* MQTT PARAMETERS *********************************/
 #define MQTT_SERVER      "m10.cloudmqtt.com"
@@ -109,7 +109,7 @@ void setup() {
   pinMode(FONA_RST, OUTPUT);
   digitalWrite(FONA_RST, HIGH); // Default state
 
-  fona.powerOn(FONA_PWRKEY); // Power on the module
+  fona.powerOn(BOTLETICS_PWRKEY); // Power on the module
   moduleSetup(); // Establishes first-time serial comm and prints IMEI
 
   if (!tempsensor.begin()) {

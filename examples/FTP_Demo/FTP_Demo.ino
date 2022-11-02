@@ -37,7 +37,7 @@ const int CS_pin = 53;
 
 /************************* PIN DEFINITIONS *********************************/
 // For botletics SIM7000 shield
-#define FONA_PWRKEY 6
+#define BOTLETICS_PWRKEY 6
 #define FONA_RST 7
 //#define FONA_DTR 8 // Connect with solder jumper
 //#define FONA_RI 9 // Need to enable via AT commands
@@ -46,7 +46,7 @@ const int CS_pin = 53;
 //#define T_ALERT 12 // Connect with solder jumper
 
 // For botletics SIM7500 shield
-//#define FONA_PWRKEY 6
+//#define BOTLETICS_PWRKEY 6
 //#define FONA_RST 7
 ////#define FONA_DTR 9 // Connect with solder jumper
 ////#define FONA_RI 8 // Need to enable via AT commands
@@ -82,16 +82,16 @@ SoftwareSerial *fonaSerial = &fonaSS;
 
 // Use this for 2G modules
 #ifdef SIMCOM_2G
-  Adafruit_FONA fona = Adafruit_FONA(FONA_RST);
+  Botletics_modem fona = Botletics_modem(FONA_RST);
   
 // Use this one for 3G modules
 #elif defined(SIMCOM_3G)
-  Adafruit_FONA_3G fona = Adafruit_FONA_3G(FONA_RST);
+  Botletics_modem_3G fona = Botletics_modem_3G(FONA_RST);
   
 // Use this one for LTE CAT-M/NB-IoT modules (like SIM7000)
 // Notice how we don't include the reset pin because it's reserved for emergencies on the LTE module!
 #elif defined(SIMCOM_7000) || defined(SIMCOM_7070) || defined(SIMCOM_7500) || defined(SIMCOM_7600)
-Adafruit_FONA_LTE fona = Adafruit_FONA_LTE();
+Botletics_modem_LTE fona = Botletics_modem_LTE();
 #endif
 
 uint8_t readline(char *buff, uint8_t maxbuff, uint16_t timeout = 0);
@@ -110,7 +110,7 @@ void setup() {
   pinMode(FONA_RST, OUTPUT);
   digitalWrite(FONA_RST, HIGH); // Default state
 
-  fona.powerOn(FONA_PWRKEY); // Power on the module
+  fona.powerOn(BOTLETICS_PWRKEY); // Power on the module
   moduleSetup(); // Establishes first-time serial comm and prints IMEI
 
   // Set modem to full functionality

@@ -13,7 +13,7 @@
  * products from Adafruit!
  *
  * Written by Pat Deegan, http://flyingcarsandstuff.com, for inclusion in
- * the Adafruit_FONA_Library and released under the
+ * the Botletics_modem_Library and released under the
  * BSD license, all text above must be included in any redistribution.
  *
  *  Created on: Jan 16, 2016
@@ -21,8 +21,8 @@
  */
 
 
-#ifndef ADAFRUIT_FONA_LIBRARY_SRC_INCLUDES_FONAEXTINCLUDES_H_
-#define ADAFRUIT_FONA_LIBRARY_SRC_INCLUDES_FONAEXTINCLUDES_H_
+#ifndef BOTLETICS_MODEM_LIBRARY_SRC_INCLUDES_FONAEXTINCLUDES_H_
+#define BOTLETICS_MODEM_LIBRARY_SRC_INCLUDES_FONAEXTINCLUDES_H_
 
 
 #include "FONAConfig.h"
@@ -30,4 +30,4 @@
 
 
 
-#endif /* ADAFRUIT_FONA_LIBRARY_SRC_INCLUDES_FONAEXTINCLUDES_H_ */
+#endif /* BOTLETICS_MODEM_LIBRARY_SRC_INCLUDES_FONAEXTINCLUDES_H_ */
