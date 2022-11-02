@@ -28,7 +28,7 @@
 
 // #define BOTLETICS_MODEM_DEBUG
 
-#include "includes/platform/ModemPlatform.h"
+#include "includes/platform/Modem.h"
 
 #define SIM800L 1
 #define SIM800H 2
