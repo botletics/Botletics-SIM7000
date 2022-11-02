@@ -57,35 +57,35 @@
 
 // For botletics SIM7000 shield with ESP32
 #define BOTLETICS_PWRKEY 18
-#define FONA_RST 5
-#define FONA_TX 16 // ESP32 hardware serial RX2 (GPIO16)
-#define FONA_RX 17 // ESP32 hardware serial TX2 (GPIO17)
+#define RST 5
+#define TX 16 // ESP32 hardware serial RX2 (GPIO16)
+#define RX 17 // ESP32 hardware serial TX2 (GPIO17)
 
 // For botletics SIM7500 shield
 //#define BOTLETICS_PWRKEY 6
-//#define FONA_RST 7
-////#define FONA_DTR 9 // Connect with solder jumper
-////#define FONA_RI 8 // Need to enable via AT commands
-//#define FONA_TX 11 // Microcontroller RX
-//#define FONA_RX 10 // Microcontroller TX
+//#define RST 7
+////#define DTR 9 // Connect with solder jumper
+////#define RI 8 // Need to enable via AT commands
+//#define TX 11 // Microcontroller RX
+//#define RX 10 // Microcontroller TX
 ////#define T_ALERT 5 // Connect with solder jumper
 
 // For ESP32 hardware serial
 #include <HardwareSerial.h>
-HardwareSerial fonaSS(1);
+HardwareSerial modemSS(1);
 
 // Use this for 2G modules
 #ifdef SIMCOM_2G
-Botletics_modem fona = Botletics_modem(FONA_RST);
+Botletics_modem modem = Botletics_modem(RST);
 
 // Use this one for 3G modules
 #elif defined(SIMCOM_3G)
-Botletics_modem_3G fona = Botletics_modem_3G(FONA_RST);
+Botletics_modem_3G modem = Botletics_modem_3G(RST);
 
 // Use this one for LTE CAT-M/NB-IoT modules (like SIM7000)
 // Notice how we don't include the reset pin because it's reserved for emergencies on the LTE module!
 #elif defined(SIMCOM_7000) || defined(SIMCOM_7070) || defined(SIMCOM_7500) || defined(SIMCOM_7600)
-Botletics_modem_LTE fona = Botletics_modem_LTE();
+Botletics_modem_LTE modem = Botletics_modem_LTE();
 #endif
 
 uint8_t readline(char *buff, uint8_t maxbuff, uint16_t timeout = 0);
@@ -96,12 +96,12 @@ char imei[16] = {0}; // MUST use a 16 character buffer for IMEI!
 void setup() {
   //  while (!Serial);
 
-  pinMode(FONA_RST, OUTPUT);
-  digitalWrite(FONA_RST, HIGH); // Default state
+  pinMode(RST, OUTPUT);
+  digitalWrite(RST, HIGH); // Default state
 
   // Turn on the module by pulsing PWRKEY low for a little bit
   // This amount of time depends on the specific module that's used
-  fona.powerOn(BOTLETICS_PWRKEY); // Power on the module
+  modem.powerOn(BOTLETICS_PWRKEY); // Power on the module
 
   Serial.begin(9600);
   Serial.println(F("ESP32 SIMCom Basic Test"));
@@ -112,19 +112,19 @@ void setup() {
   // When the module is on it should communicate right after pressing reset
   
   // Start at default SIM7000 shield baud rate
-  fonaSS.begin(115200, SERIAL_8N1, FONA_TX, FONA_RX); // baud rate, protocol, ESP32 RX pin, ESP32 TX pin
+  modemSS.begin(115200, SERIAL_8N1, TX, RX); // baud rate, protocol, ESP32 RX pin, ESP32 TX pin
 
   Serial.println(F("Configuring to 9600 baud"));
-  fonaSS.println("AT+IPR=9600"); // Set baud rate
+  modemSS.println("AT+IPR=9600"); // Set baud rate
   delay(100); // Short pause to let the command run
-  fonaSS.begin(9600, SERIAL_8N1, FONA_TX, FONA_RX); // Switch to 9600
-  if (! fona.begin(fonaSS)) {
-    Serial.println(F("Couldn't find FONA"));
+  modemSS.begin(9600, SERIAL_8N1, TX, RX); // Switch to 9600
+  if (! modem.begin(modemSS)) {
+    Serial.println(F("Couldn't find modem"));
     while (1); // Don't proceed if it couldn't find the device
   }
 
-  type = fona.type();
-  Serial.println(F("FONA is OK"));
+  type = modem.type();
+  Serial.println(F("Modem is OK"));
   Serial.print(F("Found "));
   switch (type) {
     case SIM800L:
@@ -152,44 +152,44 @@ void setup() {
   }
 
   // Print module IMEI number.
-  uint8_t imeiLen = fona.getIMEI(imei);
+  uint8_t imeiLen = modem.getIMEI(imei);
   if (imeiLen > 0) {
     Serial.print("Module IMEI: "); Serial.println(imei);
   }
 
   // Set modem to full functionality
-  fona.setFunctionality(1); // AT+CFUN=1
+  modem.setFunctionality(1); // AT+CFUN=1
 
   // Configure a GPRS APN, username, and password.
   // You might need to do this to access your network's GPRS/data
   // network.  Contact your provider for the exact APN, username,
   // and password values.  Username and password are optional and
   // can be removed, but APN is required.
-  //fona.setNetworkSettings(F("your APN"), F("your username"), F("your password"));
-  //fona.setNetworkSettings(F("m2m.com.attz")); // For AT&T IoT SIM card
-  //fona.setNetworkSettings(F("telstra.internet")); // For Telstra (Australia) SIM card - CAT-M1 (Band 28)
-  fona.setNetworkSettings(F("hologram")); // For Hologram SIM card
+  //modem.setNetworkSettings(F("your APN"), F("your username"), F("your password"));
+  //modem.setNetworkSettings(F("m2m.com.attz")); // For AT&T IoT SIM card
+  //modem.setNetworkSettings(F("telstra.internet")); // For Telstra (Australia) SIM card - CAT-M1 (Band 28)
+  modem.setNetworkSettings(F("hologram")); // For Hologram SIM card
 
   // Optionally configure HTTP gets to follow redirects over SSL.
   // Default is not to follow SSL redirects, however if you uncomment
   // the following line then redirects over SSL will be followed.
-  //fona.setHTTPSRedirect(true);
+  //modem.setHTTPSRedirect(true);
 
   /*
   // Other examples of some things you can set:
-  fona.setPreferredMode(38); // Use LTE only, not 2G
-  fona.setPreferredLTEMode(1); // Use LTE CAT-M only, not NB-IoT
-  fona.setOperatingBand("CAT-M", 12); // AT&T uses band 12
-//  fona.setOperatingBand("CAT-M", 13); // Verizon uses band 13
-  fona.enableRTC(true);
+  modem.setPreferredMode(38); // Use LTE only, not 2G
+  modem.setPreferredLTEMode(1); // Use LTE CAT-M only, not NB-IoT
+  modem.setOperatingBand("CAT-M", 12); // AT&T uses band 12
+//  modem.setOperatingBand("CAT-M", 13); // Verizon uses band 13
+  modem.enableRTC(true);
   
-  fona.enableSleepMode(true);
-  fona.set_eDRX(1, 4, "0010");
-  fona.enablePSM(true);
+  modem.enableSleepMode(true);
+  modem.set_eDRX(1, 4, "0010");
+  modem.enablePSM(true);
 
   // Set the network status LED blinking pattern while connected to a network (see AT+SLEDS command)
-  fona.setNetLED(true, 2, 64, 3000); // on/off, mode, timer_on, timer_off
-  fona.setNetLED(false); // Disable network status LED
+  modem.setNetLED(true, 2, 64, 3000); // on/off, mode, timer_on, timer_off
+  modem.setNetLED(false); // Disable network status LED
   */
 
   printMenu();
@@ -265,7 +265,7 @@ void printMenu(void) {
     Serial.println(F("[o] Turn GPS off (SIM808/5320/7XX0)"));
     Serial.println(F("[L] Query GPS location (SIM808/5320/7XX0)"));
     if (type == SIM808_V1) {
-      Serial.println(F("[x] GPS fix status (FONA808 v1 only)"));
+      Serial.println(F("[x] GPS fix status (SIM808 v1 only)"));
     }
     Serial.println(F("[E] Raw NMEA out (SIM808)"));
   }
@@ -276,10 +276,10 @@ void printMenu(void) {
 }
 
 void loop() {
-  Serial.print(F("FONA> "));
+  Serial.print(F("modem> "));
   while (! Serial.available() ) {
-    if (fona.available()) {
-      Serial.write(fona.read());
+    if (modem.available()) {
+      Serial.write(modem.read());
     }
   }
 
@@ -296,7 +296,7 @@ void loop() {
     case 'a': {
         // read the ADC
         uint16_t adc;
-        if (! fona.getADCVoltage(&adc)) {
+        if (! modem.getADCVoltage(&adc)) {
           Serial.println(F("Failed to read ADC"));
         } else {
           Serial.print(F("ADC = ")); Serial.print(adc); Serial.println(F(" mV"));
@@ -307,14 +307,14 @@ void loop() {
     case 'b': {
         // read the battery voltage and percentage
         uint16_t vbat;
-        if (! fona.getBattVoltage(&vbat)) {
+        if (! modem.getBattVoltage(&vbat)) {
           Serial.println(F("Failed to read Batt"));
         } else {
           Serial.print(F("VBat = ")); Serial.print(vbat); Serial.println(F(" mV"));
         }
 
         if (type != SIM7500 && type != SIM7600) {
-          if (! fona.getBattPercent(&vbat)) {
+          if (! modem.getBattPercent(&vbat)) {
             Serial.println(F("Failed to read Batt"));
           } else {
             Serial.print(F("VPct = ")); Serial.print(vbat); Serial.println(F("%"));
@@ -332,7 +332,7 @@ void loop() {
         readline(PIN, 3);
         Serial.println(PIN);
         Serial.print(F("Unlocking SIM card: "));
-        if (! fona.unlockSIM(PIN)) {
+        if (! modem.unlockSIM(PIN)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
@@ -342,14 +342,14 @@ void loop() {
 
     case 'C': {
         // read the CCID
-        fona.getSIMCCID(replybuffer);  // make sure replybuffer is at least 21 bytes!
+        modem.getSIMCCID(replybuffer);  // make sure replybuffer is at least 21 bytes!
         Serial.print(F("SIM CCID = ")); Serial.println(replybuffer);
         break;
       }
 
     case 'i': {
         // read the RSSI
-        uint8_t n = fona.getRSSI();
+        uint8_t n = modem.getRSSI();
         int8_t r;
 
         Serial.print(F("RSSI = ")); Serial.print(n); Serial.print(": ");
@@ -366,7 +366,7 @@ void loop() {
 
     case 'n': {
         // read the network/cellular status
-        uint8_t n = fona.getNetworkStatus();
+        uint8_t n = modem.getNetworkStatus();
         Serial.print(F("Network status "));
         Serial.print(n);
         Serial.print(F(": "));
@@ -380,7 +380,7 @@ void loop() {
       }
     case '1': {
         // Get connection type, cellular band, carrier name, etc.
-        fona.getNetworkInfo();        
+        modem.getNetworkInfo();        
         break;
       }
     
@@ -393,7 +393,7 @@ void loop() {
         readline(number, 30);
         Serial.println();
         Serial.print(F("Calling ")); Serial.println(number);
-        if (!fona.callPhone(number)) {
+        if (!modem.callPhone(number)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("Sent!"));
@@ -403,7 +403,7 @@ void loop() {
       }
     case 'A': {
         // get call status
-        int8_t callstat = fona.getCallStatus();
+        int8_t callstat = modem.getCallStatus();
         switch (callstat) {
           case 0: Serial.println(F("Ready")); break;
           case 1: Serial.println(F("Could not get status")); break;
@@ -416,7 +416,7 @@ void loop() {
       
     case 'h': {
         // hang up!
-        if (! fona.hangUp()) {
+        if (! modem.hangUp()) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
@@ -426,7 +426,7 @@ void loop() {
 
     case 'p': {
         // pick up!
-        if (! fona.pickUp()) {
+        if (! modem.pickUp()) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
@@ -448,7 +448,7 @@ void loop() {
         }
         uint8_t vol = readnumber();
         Serial.println();
-        if (! fona.setVolume(vol)) {
+        if (! modem.setVolume(vol)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
@@ -457,7 +457,7 @@ void loop() {
       }
 
     case 'V': {
-        uint8_t v = fona.getVolume();
+        uint8_t v = modem.getVolume();
         Serial.print(v);
         if ( (type == SIM5320A) || (type == SIM5320E) ) {
           Serial.println(" / 8");
@@ -471,23 +471,23 @@ void loop() {
 
     case 'H': {
         // Set Headphone output
-        if (! fona.setAudio(HEADSETAUDIO)) {
+        if (! modem.setAudio(HEADSETAUDIO)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
         }
-        fona.setMicVolume(HEADSETAUDIO, 15);
+        modem.setMicVolume(HEADSETAUDIO, 15);
         break;
       }
     case 'e': {
         // Set External output
-        if (! fona.setAudio(EXTAUDIO)) {
+        if (! modem.setAudio(EXTAUDIO)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
         }
 
-        fona.setMicVolume(EXTAUDIO, 10);
+        modem.setMicVolume(EXTAUDIO, 10);
         break;
       }
 
@@ -498,7 +498,7 @@ void loop() {
         uint8_t kittone = readnumber();
         Serial.println();
         // play for 1 second (1000 ms)
-        if (! fona.playToolkitTone(kittone, 1000)) {
+        if (! modem.playToolkitTone(kittone, 1000)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
@@ -514,7 +514,7 @@ void loop() {
         Serial.print(F("PWM Freq, 0 = Off, (1-2000): "));
         uint16_t freq = readnumber();
         Serial.println();
-        if (! fona.setPWM(freq)) {
+        if (! modem.setPWM(freq)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
@@ -533,10 +533,10 @@ void loop() {
         uint16_t station = readnumber();
         Serial.println();
         // FM radio ON using headset
-        if (fona.FMradio(true, HEADSETAUDIO)) {
+        if (modem.FMradio(true, HEADSETAUDIO)) {
           Serial.println(F("Opened"));
         }
-        if (! fona.tuneFMradio(station)) {
+        if (! modem.tuneFMradio(station)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("Tuned"));
@@ -545,7 +545,7 @@ void loop() {
       }
     case 'F': {
         // FM radio off
-        if (! fona.FMradio(false)) {
+        if (! modem.FMradio(false)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
@@ -558,7 +558,7 @@ void loop() {
         Serial.print(F("Set FM Vol [0-6]:"));
         uint8_t vol = readnumber();
         Serial.println();
-        if (!fona.setFMVolume(vol)) {
+        if (!modem.setFMVolume(vol)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
@@ -567,7 +567,7 @@ void loop() {
       }
     case 'M': {
         // Get FM volume.
-        uint8_t fmvol = fona.getFMVolume();
+        uint8_t fmvol = modem.getFMVolume();
         if (fmvol < 0) {
           Serial.println(F("Failed"));
         } else {
@@ -582,7 +582,7 @@ void loop() {
         Serial.print(F("FM Freq (eg 1011 == 101.1 MHz): "));
         uint16_t station = readnumber();
         Serial.println();
-        int8_t level = fona.getFMSignalLevel(station);
+        int8_t level = modem.getFMSignalLevel(station);
         if (level < 0) {
           Serial.println(F("Failed! Make sure FM radio is on (tuned to station)."));
         } else {
@@ -597,7 +597,7 @@ void loop() {
 
     case 'N': {
         // read the number of SMS's!
-        int8_t smsnum = fona.getNumSMS();
+        int8_t smsnum = modem.getNumSMS();
         if (smsnum < 0) {
           Serial.println(F("Could not read # SMS"));
         } else {
@@ -614,7 +614,7 @@ void loop() {
         Serial.print(F("\n\rReading SMS #")); Serial.println(smsn);
 
         // Retrieve SMS sender address/phone number.
-        if (! fona.getSMSSender(smsn, replybuffer, 250)) {
+        if (! modem.getSMSSender(smsn, replybuffer, 250)) {
           Serial.println("Failed!");
           break;
         }
@@ -622,7 +622,7 @@ void loop() {
 
         // Retrieve SMS value.
         uint16_t smslen;
-        if (! fona.readSMS(smsn, replybuffer, 250, &smslen)) { // pass in buffer and max len!
+        if (! modem.readSMS(smsn, replybuffer, 250, &smslen)) { // pass in buffer and max len!
           Serial.println("Failed!");
           break;
         }
@@ -635,7 +635,7 @@ void loop() {
       }
     case 'R': {
         // read all SMS
-        int8_t smsnum = fona.getNumSMS();
+        int8_t smsnum = modem.getNumSMS();
         uint16_t smslen;
         int8_t smsn;
 
@@ -648,7 +648,7 @@ void loop() {
 
         for ( ; smsn <= smsnum; smsn++) {
           Serial.print(F("\n\rReading SMS #")); Serial.println(smsn);
-          if (!fona.readSMS(smsn, replybuffer, 250, &smslen)) {  // pass in buffer and max len!
+          if (!modem.readSMS(smsn, replybuffer, 250, &smslen)) {  // pass in buffer and max len!
             Serial.println(F("Failed!"));
             break;
           }
@@ -675,7 +675,7 @@ void loop() {
         uint8_t smsn = readnumber();
 
         Serial.print(F("\n\rDeleting SMS #")); Serial.println(smsn);
-        if (fona.deleteSMS(smsn)) {
+        if (modem.deleteSMS(smsn)) {
           Serial.println(F("OK!"));
         } else {
           Serial.println(F("Couldn't delete"));
@@ -687,7 +687,7 @@ void loop() {
         // Delete all SMS
         flushSerial();
         Serial.println(F("\n\rDeleting all SMS"));
-        if (fona.deleteAllSMS()) {
+        if (modem.deleteAllSMS()) {
           Serial.println(F("OK!"));
         } else {
           Serial.println(F("Couldn't delete"));
@@ -705,7 +705,7 @@ void loop() {
         Serial.print(F("Type out one-line message (140 char): "));
         readline(message, 140);
         Serial.println(message);
-        if (!fona.sendSMS(sendto, message)) {
+        if (!modem.sendSMS(sendto, message)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("Sent!"));
@@ -723,7 +723,7 @@ void loop() {
       Serial.println(message);
 
       uint16_t ussdlen;
-      if (!fona.sendUSSD(message, replybuffer, 250, &ussdlen)) { // pass in buffer and max len!
+      if (!modem.sendUSSD(message, replybuffer, 250, &ussdlen)) { // pass in buffer and max len!
         Serial.println(F("Failed"));
       } else {
         Serial.println(F("Sent!"));
@@ -738,14 +738,14 @@ void loop() {
 
     case 'y': {
         // enable network time sync
-        if (!fona.enableRTC(true))
+        if (!modem.enableRTC(true))
           Serial.println(F("Failed to enable"));
         break;
       }
 
     case 'Y': {
         // enable NTP time sync
-        if (!fona.enableNTPTimeSync(true, F("pool.ntp.org")))
+        if (!modem.enableNTPTimeSync(true, F("pool.ntp.org")))
           Serial.println(F("Failed to enable"));
         break;
       }
@@ -754,7 +754,7 @@ void loop() {
         // read the time
         char buffer[23];
 
-        fona.getTime(buffer, 23);  // make sure replybuffer is at least 23 bytes!
+        modem.getTime(buffer, 23);  // make sure replybuffer is at least 23 bytes!
         Serial.print(F("Time = ")); Serial.println(buffer);
         break;
       }
@@ -764,20 +764,20 @@ void loop() {
 
     case 'o': {
         // turn GPS off
-        if (!fona.enableGPS(false))
+        if (!modem.enableGPS(false))
           Serial.println(F("Failed to turn off"));
         break;
       }
     case 'O': {
         // turn GPS on
-        if (!fona.enableGPS(true))
+        if (!modem.enableGPS(true))
           Serial.println(F("Failed to turn on"));
         break;
       }
     case 'x': {
         int8_t stat;
         // check GPS fix
-        stat = fona.GPSstatus();
+        stat = modem.GPSstatus();
         if (stat < 0)
           Serial.println(F("Failed to query"));
         if (stat == 0) Serial.println(F("GPS off"));
@@ -792,7 +792,7 @@ void loop() {
         // Uncomment this block if all you want to see is the AT command response
         // check for GPS location
         char gpsdata[120];
-        fona.getGPS(0, gpsdata, 120);
+        modem.getGPS(0, gpsdata, 120);
         if (type == SIM808_V1)
           Serial.println(F("Reply in format: mode,longitude,latitude,altitude,utctime(yyyymmddHHMMSS),ttff,satellites,speed,course"));
         else if ( (type == SIM5320A) || (type == SIM5320E) || (type == SIM7500) || (type == SIM7600) )
@@ -812,8 +812,8 @@ void loop() {
         uint8_t month, day, hour, minute;
         */
         // Use the top line if you want to parse UTC time data as well, the line below it if you don't care
-//        if (fona.getGPS(&latitude, &longitude, &speed_kph, &heading, &altitude, &year, &month, &day, &hour, &minute, &second)) {
-        if (fona.getGPS(&latitude, &longitude, &speed_kph, &heading, &altitude)) { // Use this line instead if you don't want UTC time
+//        if (modem.getGPS(&latitude, &longitude, &speed_kph, &heading, &altitude, &year, &month, &day, &hour, &minute, &second)) {
+        if (modem.getGPS(&latitude, &longitude, &speed_kph, &heading, &altitude)) { // Use this line instead if you don't want UTC time
           Serial.println(F("---------------------"));
           Serial.print(F("Latitude: ")); Serial.println(latitude, 6);
           Serial.print(F("Longitude: ")); Serial.println(longitude, 6);
@@ -845,7 +845,7 @@ void loop() {
         uint8_t nmeaout = readnumber();
 
         // turn on NMEA output
-        fona.enableGPSNMEA(nmeaout);
+        modem.enableGPSNMEA(nmeaout);
 
         break;
       }
@@ -854,18 +854,18 @@ void loop() {
 
     case 'g': {
         // turn GPRS off
-        if (!fona.enableGPRS(false))
+        if (!modem.enableGPRS(false))
           Serial.println(F("Failed to turn off"));
         break;
       }
     case 'G': {
         // turn GPRS off first for SIM7500
         #if defined(SIMCOM_7500) || defined (SIMCOM_7600)
-          fona.enableGPRS(false);
+          modem.enableGPRS(false);
         #endif
         
         // turn GPRS on
-        if (!fona.enableGPRS(true))
+        if (!modem.enableGPRS(true))
           Serial.println(F("Failed to turn on"));
         break;
       }
@@ -873,7 +873,7 @@ void loop() {
         // check for GSMLOC (requires GPRS)
         uint16_t returncode;
 
-        if (!fona.getGSMLoc(&returncode, replybuffer, 250))
+        if (!modem.getGSMLoc(&returncode, replybuffer, 250))
           Serial.println(F("Failed!"));
         if (returncode == 0) {
           Serial.println(replybuffer);
@@ -898,13 +898,13 @@ void loop() {
         Serial.println(url);
 
         Serial.println(F("****"));
-        if (!fona.HTTP_GET_start(url, &statuscode, (uint16_t *)&length)) {
+        if (!modem.HTTP_GET_start(url, &statuscode, (uint16_t *)&length)) {
           Serial.println("Failed!");
           break;
         }
         while (length > 0) {
-          while (fona.available()) {
-            char c = fona.read();
+          while (modem.available()) {
+            char c = modem.read();
 
             // Serial.write is too slow, we'll write directly to Serial register!
 #if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
@@ -918,7 +918,7 @@ void loop() {
           }
         }
         Serial.println(F("\n****"));
-        fona.HTTP_GET_end();
+        modem.HTTP_GET_end();
         break;
       }
 
@@ -939,13 +939,13 @@ void loop() {
         Serial.println(data);
 
         Serial.println(F("****"));
-        if (!fona.HTTP_POST_start(url, F("text/plain"), (uint8_t *) data, strlen(data), &statuscode, (uint16_t *)&length)) {
+        if (!modem.HTTP_POST_start(url, F("text/plain"), (uint8_t *) data, strlen(data), &statuscode, (uint16_t *)&length)) {
           Serial.println("Failed!");
           break;
         }
         while (length > 0) {
-          while (fona.available()) {
-            char c = fona.read();
+          while (modem.available()) {
+            char c = modem.read();
 
 #if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
             loop_until_bit_is_set(UCSR0A, UDRE0); /* Wait until data register empty. */
@@ -959,7 +959,7 @@ void loop() {
           }
         }
         Serial.println(F("\n****"));
-        fona.HTTP_POST_end();
+        modem.HTTP_POST_end();
         break;
       }
 #endif
@@ -992,7 +992,7 @@ void loop() {
         sprintf(URL, "dweet.io/dweet/for/%s?temp=%s&batt=%s", imei, tempBuff, battLevelBuff); // No need to specify http:// or https://
 //        sprintf(URL, "http://dweet.io/dweet/for/%s?temp=%s&batt=%s", imei, tempBuff, battLevelBuff); // But this works too
 
-        if (!fona.postData("GET", URL))
+        if (!modem.postData("GET", URL))
           Serial.println(F("Failed to complete HTTP GET..."));
         
         // POST request
@@ -1000,7 +1000,7 @@ void loop() {
         sprintf(URL, "http://dweet.io/dweet/for/%s", imei);
         sprintf(body, "{\"temp\":%s,\"batt\":%s}", tempBuff, battLevelBuff);
         
-        if (!fona.postData("POST", URL, body)) // Can also add authorization token parameter!
+        if (!modem.postData("POST", URL, body)) // Can also add authorization token parameter!
           Serial.println(F("Failed to complete HTTP POST..."));
         */
       
@@ -1032,7 +1032,7 @@ void loop() {
         // GET request
         sprintf(URL, "GET /dweet/for/%s?temp=%s&batt=%s HTTP/1.1\r\nHost: dweet.io\r\n\r\n", imei, tempBuff, battLevelBuff);
         
-        if (!fona.postData("www.dweet.io", 443, "HTTPS", URL)) // Server, port, connection type, URL
+        if (!modem.postData("www.dweet.io", 443, "HTTPS", URL)) // Server, port, connection type, URL
           Serial.println(F("Failed to complete HTTP/HTTPS request..."));
       
         break;
@@ -1045,10 +1045,10 @@ void loop() {
         while (1) {
           while (Serial.available()) {
             delay(1);
-            fona.write(Serial.read());
+            modem.write(Serial.read());
           }
-          if (fona.available()) {
-            Serial.write(fona.read());
+          if (modem.available()) {
+            Serial.write(modem.read());
           }
         }
         break;
@@ -1062,8 +1062,8 @@ void loop() {
   }
   // flush input
   flushSerial();
-  while (fona.available()) {
-    Serial.write(fona.read());
+  while (modem.available()) {
+    Serial.write(modem.read());
   }
 
 }
