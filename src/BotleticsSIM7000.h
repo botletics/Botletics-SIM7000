@@ -20,11 +20,15 @@
 #ifndef BOTLETICS_MODEM_H
 #define BOTLETICS_MODEM_H
 
-#include "includes/FONAConfig.h"
-#include "includes/FONAExtIncludes.h"
-#include "includes/platform/FONAPlatform.h"
+/*
+ * BOTLETICS_MODEM_DEBUG
+ * Causes extensive debug output on the DebugStream;
+ * set in the appropriate header.
+ */
 
+// #define BOTLETICS_MODEM_DEBUG
 
+#include "includes/platform/ModemPlatform.h"
 
 #define SIM800L 1
 #define SIM800H 2
@@ -56,7 +60,7 @@
 
 // Set the preferred SMS storage.
 //   Use "SM" for storage on the SIM.
-//   Use "ME" for internal storage on the FONA chip
+//   Use "ME" for internal storage on the chip
 #define MODEM_PREF_SMS_STORAGE "\"SM\""
 //#define MODEM_PREF_SMS_STORAGE "\"ME\""
 
