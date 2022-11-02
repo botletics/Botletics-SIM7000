@@ -31,7 +31,7 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
-// #include "Adafruit_FONA.h" // https://github.com/botletics/SIM7000-LTE-Shield/tree/master/Code
+// #include "Botletics_modem.h" // https://github.com/botletics/SIM7000-LTE-Shield/tree/master/Code
 
 #if defined(ARDUINO_SAMD_ZERO) && defined(SERIAL_PORT_USBVIRTUAL)
   // Required for Serial on Zero based boards
@@ -47,53 +47,53 @@
 //#define SIMCOM_7600
 
 // For botletics SIM7000 shield
-#define FONA_PWRKEY 6
-#define FONA_RST 7
-//#define FONA_DTR 8 // Connect with solder jumper
-//#define FONA_RI 9 // Need to enable via AT commands
-#define FONA_TX 10 // Microcontroller RX
-#define FONA_RX 11 // Microcontroller TX
+#define BOTLETICS_PWRKEY 6
+#define RST 7
+//#define DTR 8 // Connect with solder jumper
+//#define RI 9 // Need to enable via AT commands
+#define TX 10 // Microcontroller RX
+#define RX 11 // Microcontroller TX
 //#define T_ALERT 12 // Connect with solder jumper
 
 // For botletics SIM7500 shield
-//#define FONA_PWRKEY 6
-//#define FONA_RST 7
-////#define FONA_DTR 9 // Connect with solder jumper
-////#define FONA_RI 8 // Need to enable via AT commands
-//#define FONA_TX 11 // Microcontroller RX
-//#define FONA_RX 10 // Microcontroller TX
+//#define BOTLETICS_PWRKEY 6
+//#define RST 7
+////#define DTR 9 // Connect with solder jumper
+////#define RI 8 // Need to enable via AT commands
+//#define TX 11 // Microcontroller RX
+//#define RX 10 // Microcontroller TX
 ////#define T_ALERT 5 // Connect with solder jumper
 
 // We default to using software serial. If you want to use hardware serial
 // (because softserial isnt supported) comment out the following three lines 
 // and uncomment the HardwareSerial line
 #include <SoftwareSerial.h>
-SoftwareSerial fonaSS = SoftwareSerial(FONA_TX, FONA_RX);
+SoftwareSerial modemSS = SoftwareSerial(TX, RX);
 
 // Use the following line for ESP8266 instead of the line above (comment out the one above)
-//SoftwareSerial fonaSS = SoftwareSerial(FONA_TX, FONA_RX, false, 256); // TX, RX, inverted logic, buffer size
+//SoftwareSerial modemSS = SoftwareSerial(TX, RX, false, 256); // TX, RX, inverted logic, buffer size
 
-SoftwareSerial *fonaSerial = &fonaSS;
+SoftwareSerial *modemSerial = &modemSS;
 
 // Hardware serial is also possible!
-//HardwareSerial *fonaSerial = &Serial1;
+//HardwareSerial *modemSerial = &Serial1;
 
 // For ESP32 hardware serial use these lines instead
 //#include <HardwareSerial.h>
-//HardwareSerial fonaSS(1);
+//HardwareSerial modemSS(1);
 
 // Use this for 2G modules
 #ifdef SIMCOM_2G
-  Adafruit_FONA fona = Adafruit_FONA(FONA_RST);
+  Botletics_modem modem = Botletics_modem(RST);
   
 // Use this one for 3G modules
 #elif defined(SIMCOM_3G)
-  Adafruit_FONA_3G fona = Adafruit_FONA_3G(FONA_RST);
+  Botletics_modem_3G modem = Botletics_modem_3G(RST);
   
 // Use this one for LTE CAT-M/NB-IoT modules (like SIM7000)
 // Notice how we don't include the reset pin because it's reserved for emergencies on the LTE module!
 #elif defined(SIMCOM_7000) || defined(SIMCOM_7070) || defined(SIMCOM_7500) || defined(SIMCOM_7600)
-Adafruit_FONA_LTE fona = Adafruit_FONA_LTE();
+Botletics_modem_LTE modem = Botletics_modem_LTE();
 #endif
 
 uint8_t readline(char *buff, uint8_t maxbuff, uint16_t timeout = 0);
@@ -103,12 +103,12 @@ char imei[16] = {0}; // MUST use a 16 character buffer for IMEI!
 void setup() {
 //  while (!Serial);
 
-  pinMode(FONA_RST, OUTPUT);
-  digitalWrite(FONA_RST, HIGH); // Default state
+  pinMode(RST, OUTPUT);
+  digitalWrite(RST, HIGH); // Default state
   
   // Turn on the module by pulsing PWRKEY low for a little bit
   // This amount of time depends on the specific module that's used
-  fona.powerOn(FONA_PWRKEY); // Power on the module
+  modem.powerOn(BOTLETICS_PWRKEY); // Power on the module
 
   Serial.begin(9600);
   Serial.println(F("SMS Response Test"));
@@ -119,22 +119,22 @@ void setup() {
   // When the module is on it should communicate right after pressing reset
 
   // Software serial:
-  fonaSS.begin(115200); // Default SIM7000 shield baud rate
+  modemSS.begin(115200); // Default SIM7000 shield baud rate
 
   Serial.println(F("Configuring to 9600 baud"));
-  fonaSS.println("AT+IPR=9600"); // Set baud rate
+  modemSS.println("AT+IPR=9600"); // Set baud rate
   delay(100); // Short pause to let the command run
-  fonaSS.begin(9600);
-  if (! fona.begin(fonaSS)) {
-    Serial.println(F("Couldn't find FONA"));
+  modemSS.begin(9600);
+  if (! modem.begin(modemSS)) {
+    Serial.println(F("Couldn't find modem"));
     while (1); // Don't proceed if it couldn't find the device
   }
 
   // Hardware serial:
   /*
-  fonaSerial->begin(115200); // Default SIM7000 baud rate
+  modemSerial->begin(115200); // Default SIM7000 baud rate
 
-  if (! fona.begin(*fonaSerial)) {
+  if (! modem.begin(*modemSerial)) {
     DEBUG_PRINTLN(F("Couldn't find SIM7000"));
   }
   */
@@ -144,20 +144,20 @@ void setup() {
   // press the reset button in order to establish communication. However, once the baud is set
   // this method will be much slower.
   /*
-  fonaSerial->begin(115200); // Default LTE shield baud rate
-  fona.begin(*fonaSerial); // Don't use if statement because an OK reply could be sent incorrectly at 115200 baud
+  modemSerial->begin(115200); // Default LTE shield baud rate
+  modem.begin(*modemSerial); // Don't use if statement because an OK reply could be sent incorrectly at 115200 baud
 
   Serial.println(F("Configuring to 9600 baud"));
-  fona.setBaudrate(9600); // Set to 9600 baud
-  fonaSerial->begin(9600);
-  if (!fona.begin(*fonaSerial)) {
+  modem.setBaudrate(9600); // Set to 9600 baud
+  modemSerial->begin(9600);
+  if (!modem.begin(*modemSerial)) {
     Serial.println(F("Couldn't find modem"));
     while(1); // Don't proceed if it couldn't find the device
   }
   */
   
-  type = fona.type();
-  Serial.println(F("FONA is OK"));
+  type = modem.type();
+  Serial.println(F("Modem is OK"));
   Serial.print(F("Found "));
   switch (type) {
     case SIM800L:
@@ -185,53 +185,53 @@ void setup() {
   }
   
   // Print module IMEI number.
-  uint8_t imeiLen = fona.getIMEI(imei);
+  uint8_t imeiLen = modem.getIMEI(imei);
   if (imeiLen > 0) {
     Serial.print("Module IMEI: "); Serial.println(imei);
   }
 
   // Set modem to full functionality
-  fona.setFunctionality(1); // AT+CFUN=1
+  modem.setFunctionality(1); // AT+CFUN=1
 
   // Configure a GPRS APN, username, and password.
   // You might need to do this to access your network's GPRS/data
   // network.  Contact your provider for the exact APN, username,
   // and password values.  Username and password are optional and
   // can be removed, but APN is required.
-  //fona.setNetworkSettings(F("your APN"), F("your username"), F("your password"));
-  //fona.setNetworkSettings(F("m2m.com.attz")); // For AT&T IoT SIM card
-  //fona.setNetworkSettings(F("telstra.internet")); // For Telstra (Australia) SIM card - CAT-M1 (Band 28)
-  fona.setNetworkSettings(F("hologram")); // For Hologram SIM card
+  //modem.setNetworkSettings(F("your APN"), F("your username"), F("your password"));
+  //modem.setNetworkSettings(F("m2m.com.attz")); // For AT&T IoT SIM card
+  //modem.setNetworkSettings(F("telstra.internet")); // For Telstra (Australia) SIM card - CAT-M1 (Band 28)
+  modem.setNetworkSettings(F("hologram")); // For Hologram SIM card
 
   // Optionally configure HTTP gets to follow redirects over SSL.
   // Default is not to follow SSL redirects, however if you uncomment
   // the following line then redirects over SSL will be followed.
-  //fona.setHTTPSRedirect(true);
+  //modem.setHTTPSRedirect(true);
 
   /*
   // Other examples of some things you can set:
-  fona.setPreferredMode(38); // Use LTE only, not 2G
-  fona.setPreferredLTEMode(1); // Use LTE CAT-M only, not NB-IoT
-  fona.setOperatingBand("CAT-M", 12); // AT&T uses band 12
-//  fona.setOperatingBand("CAT-M", 13); // Verizon uses band 13
-  fona.enableRTC(true);
+  modem.setPreferredMode(38); // Use LTE only, not 2G
+  modem.setPreferredLTEMode(1); // Use LTE CAT-M only, not NB-IoT
+  modem.setOperatingBand("CAT-M", 12); // AT&T uses band 12
+//  modem.setOperatingBand("CAT-M", 13); // Verizon uses band 13
+  modem.enableRTC(true);
   
-  fona.enableSleepMode(true);
-  fona.set_eDRX(1, 4, "0010");
-  fona.enablePSM(true);
+  modem.enableSleepMode(true);
+  modem.set_eDRX(1, 4, "0010");
+  modem.enablePSM(true);
 
   // Set the network status LED blinking pattern while connected to a network (see AT+SLEDS command)
-  fona.setNetLED(true, 2, 64, 3000); // on/off, mode, timer_on, timer_off
-  fona.setNetLED(false); // Disable network status LED
+  modem.setNetLED(true, 2, 64, 3000); // on/off, mode, timer_on, timer_off
+  modem.setNetLED(false); // Disable network status LED
   */
 
-  fonaSerial->print("AT+CNMI=2,1\r\n");  // Set up the FONA to send a +CMTI notification when an SMS is received
+  modemSerial->print("AT+CNMI=2,1\r\n");  // Set up the modem to send a +CMTI notification when an SMS is received
 
-  Serial.println("FONA Ready");
+  Serial.println("Modem Ready");
 }
 
   
-char fonaNotificationBuffer[64];  //for notifications from the FONA
+char modemNotificationBuffer[64];  //for notifications from the modem
 char smsBuffer[250];
 char callerIDbuffer[32];  //we'll store the SMS sender number in here
 
@@ -239,35 +239,35 @@ int slot = 0;            //this will be the slot number of the SMS
 
 void loop() {
   
-  char* bufPtr = fonaNotificationBuffer;    //handy buffer pointer
+  char* bufPtr = modemNotificationBuffer;    //handy buffer pointer
   
-  if (fona.available())      //any data available from the FONA?
+  if (modem.available())      //any data available from the modem?
   {
     int charCount = 0;
-    //Read the notification into fonaInBuffer
+    //Read the notification into modemInBuffer
     do  {
-      *bufPtr = fona.read();
+      *bufPtr = modem.read();
       Serial.write(*bufPtr);
       delay(1);
-    } while ((*bufPtr++ != '\n') && (fona.available()) && (++charCount < (sizeof(fonaNotificationBuffer)-1)));
+    } while ((*bufPtr++ != '\n') && (modem.available()) && (++charCount < (sizeof(modemNotificationBuffer)-1)));
     
     //Add a terminal NULL to the notification string
     *bufPtr = 0;
 
     //Scan the notification string for an SMS received notification.
     //  If it's an SMS message, we'll get the slot number in 'slot'
-    if (1 == sscanf(fonaNotificationBuffer, "+CMTI: " FONA_PREF_SMS_STORAGE ",%d", &slot)) {
+    if (1 == sscanf(modemNotificationBuffer, "+CMTI: " MODEM_PREF_SMS_STORAGE ",%d", &slot)) {
       Serial.print("slot: "); Serial.println(slot);
             
       // Retrieve SMS sender address/phone number.
-      if (! fona.getSMSSender(slot, callerIDbuffer, 31)) {
+      if (! modem.getSMSSender(slot, callerIDbuffer, 31)) {
         Serial.println("Didn't find SMS message in slot!");
       }
       Serial.print(F("FROM: ")); Serial.println(callerIDbuffer);
 
       // Retrieve SMS value.
       uint16_t smslen;
-      if (fona.readSMS(slot, smsBuffer, 250, &smslen)) { // pass in buffer and max len!
+      if (modem.readSMS(slot, smsBuffer, 250, &smslen)) { // pass in buffer and max len!
         Serial.println(smsBuffer);
 
         // OPTIONAL: Check for a magic password and do something special!
@@ -304,7 +304,7 @@ void loop() {
 void sendText(const char* textMessage) {
   Serial.println("Sending reponse...");
   
-  if (!fona.sendSMS(callerIDbuffer, textMessage)) {
+  if (!modem.sendSMS(callerIDbuffer, textMessage)) {
     Serial.println(F("Failed"));
   } else {
     Serial.println(F("Sent!"));
@@ -313,10 +313,10 @@ void sendText(const char* textMessage) {
   // Delete the original message after it is processed.
   // Otherwise we will fill up all the slots and
   // then we won't be able to receive any more!
-  if (fona.deleteSMS(slot)) {
+  if (modem.deleteSMS(slot)) {
     Serial.println(F("OK!"));
   } else {
     Serial.print(F("Couldn't delete SMS in slot ")); Serial.println(slot);
-    fona.print(F("AT+CMGD=?\r\n"));
+    modem.print(F("AT+CMGD=?\r\n"));
   }
 }

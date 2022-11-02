@@ -32,21 +32,21 @@
 
 /************************* PIN DEFINITIONS *********************************/
 // For botletics SIM7000 shield
-#define FONA_PWRKEY 6
-#define FONA_RST 7
-//#define FONA_DTR 8 // Connect with solder jumper
-//#define FONA_RI 9 // Need to enable via AT commands
-#define FONA_TX 10 // Microcontroller RX
-#define FONA_RX 11 // Microcontroller TX
+#define BOTLETICS_PWRKEY 6
+#define RST 7
+//#define DTR 8 // Connect with solder jumper
+//#define RI 9 // Need to enable via AT commands
+#define TX 10 // Microcontroller RX
+#define RX 11 // Microcontroller TX
 //#define T_ALERT 12 // Connect with solder jumper
 
 // For botletics SIM7500 shield
-//#define FONA_PWRKEY 6
-//#define FONA_RST 7
-////#define FONA_DTR 9 // Connect with solder jumper
-////#define FONA_RI 8 // Need to enable via AT commands
-//#define FONA_TX 11 // Microcontroller RX
-//#define FONA_RX 10 // Microcontroller TX
+//#define BOTLETICS_PWRKEY 6
+//#define RST 7
+////#define DTR 9 // Connect with solder jumper
+////#define RI 8 // Need to enable via AT commands
+//#define TX 11 // Microcontroller RX
+//#define RX 10 // Microcontroller TX
 ////#define T_ALERT 5 // Connect with solder jumper
 
 #define LED 13 // Just for testing if needed!
@@ -57,32 +57,32 @@
 // (because softserial isnt supported) comment out the following three lines 
 // and uncomment the HardwareSerial line
 #include <SoftwareSerial.h>
-SoftwareSerial fonaSS = SoftwareSerial(FONA_TX, FONA_RX);
+SoftwareSerial modemSS = SoftwareSerial(TX, RX);
 
 // Use the following line for ESP8266 instead of the line above (comment out the one above)
-//SoftwareSerial fonaSS = SoftwareSerial(FONA_TX, FONA_RX, false, 256); // TX, RX, inverted logic, buffer size
+//SoftwareSerial modemSS = SoftwareSerial(TX, RX, false, 256); // TX, RX, inverted logic, buffer size
 
-SoftwareSerial *fonaSerial = &fonaSS;
+SoftwareSerial *modemSerial = &modemSS;
 
 // Hardware serial is also possible!
-//HardwareSerial *fonaSerial = &Serial1;
+//HardwareSerial *modemSerial = &Serial1;
 
 // For ESP32 hardware serial use these lines instead
 //#include <HardwareSerial.h>
-//HardwareSerial fonaSS(1);
+//HardwareSerial modemSS(1);
 
 // Use this for 2G modules
 #ifdef SIMCOM_2G
-  Adafruit_FONA fona = Adafruit_FONA(FONA_RST);
+  Botletics_modem modem = Botletics_modem(RST);
   
 // Use this one for 3G modules
 #elif defined(SIMCOM_3G)
-  Adafruit_FONA_3G fona = Adafruit_FONA_3G(FONA_RST);
+  Botletics_modem_3G modem = Botletics_modem_3G(RST);
   
 // Use this one for LTE CAT-M/NB-IoT modules (like SIM7000)
 // Notice how we don't include the reset pin because it's reserved for emergencies on the LTE module!
 #elif defined(SIMCOM_7000) || defined(SIMCOM_7070) || defined(SIMCOM_7500) || defined(SIMCOM_7600)
-  Adafruit_FONA_LTE fona = Adafruit_FONA_LTE();
+  Botletics_modem_LTE modem = Botletics_modem_LTE();
 #endif
 
 /************************* MQTT SETUP *********************************/
@@ -93,8 +93,8 @@ SoftwareSerial *fonaSerial = &fonaSS;
 #define AIO_USERNAME    "yourUsernameHere"
 #define AIO_KEY         "YourAIOkeyHere"
 
-// Setup the FONA MQTT class by passing in the FONA class and MQTT server and login details.
-Adafruit_MQTT_FONA mqtt(&fona, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+// Setup the FONA MQTT class by passing in the modem class and MQTT server and login details.
+Adafruit_MQTT_FONA mqtt(&modem, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 
 // How many transmission failures in a row we're OK with before reset
 uint8_t txfailures = 0;  
@@ -147,10 +147,10 @@ void setup() {
     digitalWrite(LED, LOW);
   #endif
   
-  pinMode(FONA_RST, OUTPUT);
-  digitalWrite(FONA_RST, HIGH); // Default state
+  pinMode(RST, OUTPUT);
+  digitalWrite(RST, HIGH); // Default state
 
-  fona.powerOn(FONA_PWRKEY); // Power on the module
+  modem.powerOn(BOTLETICS_PWRKEY); // Power on the module
   moduleSetup(); // Establishes first-time serial comm and prints IMEI
 
   if (!tempsensor.begin()) {
@@ -162,50 +162,50 @@ void setup() {
   // Unlock SIM card if needed
   // Remember to uncomment the "PIN" variable definition above
   /*
-  if (!fona.unlockSIM(PIN)) {
+  if (!modem.unlockSIM(PIN)) {
     Serial.println(F("Failed to unlock SIM card"));
   }
   */
 
   // Set modem to full functionality
-  fona.setFunctionality(1); // AT+CFUN=1
+  modem.setFunctionality(1); // AT+CFUN=1
 
   // Configure a GPRS APN, username, and password.
   // You might need to do this to access your network's GPRS/data
   // network.  Contact your provider for the exact APN, username,
   // and password values.  Username and password are optional and
   // can be removed, but APN is required.
-  //fona.setNetworkSettings(F("your APN"), F("your username"), F("your password"));
-  //fona.setNetworkSettings(F("m2m.com.attz")); // For AT&T IoT SIM card
-  //fona.setNetworkSettings(F("telstra.internet")); // For Telstra (Australia) SIM card - CAT-M1 (Band 28)
-  fona.setNetworkSettings(F("hologram")); // For Hologram SIM card
+  //modem.setNetworkSettings(F("your APN"), F("your username"), F("your password"));
+  //modem.setNetworkSettings(F("m2m.com.attz")); // For AT&T IoT SIM card
+  //modem.setNetworkSettings(F("telstra.internet")); // For Telstra (Australia) SIM card - CAT-M1 (Band 28)
+  modem.setNetworkSettings(F("hologram")); // For Hologram SIM card
 
   // Optionally configure HTTP gets to follow redirects over SSL.
   // Default is not to follow SSL redirects, however if you uncomment
   // the following line then redirects over SSL will be followed.
-  //fona.setHTTPSRedirect(true);
+  //modem.setHTTPSRedirect(true);
 
   /*
   // Other examples of some things you can set:
-  fona.setPreferredMode(38); // Use LTE only, not 2G
-  fona.setPreferredLTEMode(1); // Use LTE CAT-M only, not NB-IoT
-  fona.setOperatingBand("CAT-M", 12); // AT&T uses band 12
-//  fona.setOperatingBand("CAT-M", 13); // Verizon uses band 13
-  fona.enableRTC(true);
+  modem.setPreferredMode(38); // Use LTE only, not 2G
+  modem.setPreferredLTEMode(1); // Use LTE CAT-M only, not NB-IoT
+  modem.setOperatingBand("CAT-M", 12); // AT&T uses band 12
+//  modem.setOperatingBand("CAT-M", 13); // Verizon uses band 13
+  modem.enableRTC(true);
   
-  fona.enableSleepMode(true);
-  fona.set_eDRX(1, 4, "0010");
-  fona.enablePSM(true);
+  modem.enableSleepMode(true);
+  modem.set_eDRX(1, 4, "0010");
+  modem.enablePSM(true);
 
   // Set the network status LED blinking pattern while connected to a network (see AT+SLEDS command)
-  fona.setNetLED(true, 2, 64, 3000); // on/off, mode, timer_on, timer_off
-  fona.setNetLED(false); // Disable network status LED
+  modem.setNetLED(true, 2, 64, 3000); // on/off, mode, timer_on, timer_off
+  modem.setNetLED(false); // Disable network status LED
   */
 
   // Perform first-time GPS/data setup if the shield is going to remain on,
   // otherwise these won't be enabled in loop() and it won't work!
   // Enable GPS
-  while (!fona.enableGPS(true)) {
+  while (!modem.enableGPS(true)) {
     Serial.println(F("Failed to turn on GPS, retrying..."));
     delay(2000); // Retry every 2s
   }
@@ -213,10 +213,10 @@ void setup() {
 
   #if !defined(SIMCOM_3G) && !defined(SIMCOM_7500) && !defined(SIMCOM_7600)
     // Disable data just to make sure it was actually off so that we can turn it on
-    if (!fona.enableGPRS(false)) Serial.println(F("Failed to disable data!"));
+    if (!modem.enableGPRS(false)) Serial.println(F("Failed to disable data!"));
     
     // Turn on data
-    while (!fona.enableGPRS(true)) {
+    while (!modem.enableGPRS(true)) {
       Serial.println(F("Failed to enable data, retrying..."));
       delay(2000); // Retry every 2s
     }
@@ -236,11 +236,11 @@ void loop() {
   Serial.println(F("Connected to cell network!"));
   
   // Disable data just to make sure it was actually off so that we can turn it on
-  // fona.openWirelessConnection(false);
+  // modem.openWirelessConnection(false);
   
   // Open wireless connection if not already activated
-  if (!fona.wirelessConnStatus()) {
-    while (!fona.openWirelessConnection(true)) {
+  if (!modem.wirelessConnStatus()) {
+    while (!modem.openWirelessConnection(true)) {
       Serial.println(F("Failed to enable connection, retrying..."));
       delay(2000); // Retry every 2s
     }
@@ -267,7 +267,7 @@ void loop() {
 
   // Turn on GPS if it wasn't on already (e.g., if the module wasn't turned off)
 #ifdef turnOffShield
-  while (!fona.enableGPS(true)) {
+  while (!modem.enableGPS(true)) {
     Serial.println(F("Failed to turn on GPS, retrying..."));
     delay(2000); // Retry every 2s
   }
@@ -276,8 +276,8 @@ void loop() {
 
   // Get a fix on location, try every 2s
   // Use the top line if you want to parse UTC time data as well, the line below it if you don't care
-//  while (!fona.getGPS(&latitude, &longitude, &speed_kph, &heading, &altitude, &year, &month, &day, &hour, &minute, &second)) {
-  while (!fona.getGPS(&latitude, &longitude, &speed_kph, &heading, &altitude)) {
+//  while (!modem.getGPS(&latitude, &longitude, &speed_kph, &heading, &altitude, &year, &month, &day, &hour, &minute, &second)) {
+  while (!modem.getGPS(&latitude, &longitude, &speed_kph, &heading, &altitude)) {
     Serial.println(F("Failed to get GPS location, retrying..."));
     delay(2000); // Retry every 2s
   }
@@ -358,22 +358,22 @@ void moduleSetup() {
   // When the module is on it should communicate right after pressing reset
 
   // Software serial:
-  fonaSS.begin(115200); // Default SIM7000 shield baud rate
+  modemSS.begin(115200); // Default SIM7000 shield baud rate
 
   Serial.println(F("Configuring to 9600 baud"));
-  fonaSS.println("AT+IPR=9600"); // Set baud rate
+  modemSS.println("AT+IPR=9600"); // Set baud rate
   delay(100); // Short pause to let the command run
-  fonaSS.begin(9600);
-  if (! fona.begin(fonaSS)) {
-    Serial.println(F("Couldn't find FONA"));
+  modemSS.begin(9600);
+  if (! modem.begin(modemSS)) {
+    Serial.println(F("Couldn't find modem"));
     while (1); // Don't proceed if it couldn't find the device
   }
 
   // Hardware serial:
   /*
-  fonaSerial->begin(115200); // Default SIM7000 baud rate
+  modemSerial->begin(115200); // Default SIM7000 baud rate
 
-  if (! fona.begin(*fonaSerial)) {
+  if (! modem.begin(*modemSerial)) {
     DEBUG_PRINTLN(F("Couldn't find SIM7000"));
   }
   */
@@ -383,20 +383,20 @@ void moduleSetup() {
   // press the reset button in order to establish communication. However, once the baud is set
   // this method will be much slower.
   /*
-  fonaSerial->begin(115200); // Default LTE shield baud rate
-  fona.begin(*fonaSerial); // Don't use if statement because an OK reply could be sent incorrectly at 115200 baud
+  modemSerial->begin(115200); // Default LTE shield baud rate
+  modem.begin(*modemSerial); // Don't use if statement because an OK reply could be sent incorrectly at 115200 baud
 
   Serial.println(F("Configuring to 9600 baud"));
-  fona.setBaudrate(9600); // Set to 9600 baud
-  fonaSerial->begin(9600);
-  if (!fona.begin(*fonaSerial)) {
+  modem.setBaudrate(9600); // Set to 9600 baud
+  modemSerial->begin(9600);
+  if (!modem.begin(*modemSerial)) {
     Serial.println(F("Couldn't find modem"));
     while(1); // Don't proceed if it couldn't find the device
   }
   */
 
-  type = fona.type();
-  Serial.println(F("FONA is OK"));
+  type = modem.type();
+  Serial.println(F("Modem is OK"));
   Serial.print(F("Found "));
   switch (type) {
     case SIM800L:
@@ -424,7 +424,7 @@ void moduleSetup() {
   }
   
   // Print module IMEI number.
-  uint8_t imeiLen = fona.getIMEI(imei);
+  uint8_t imeiLen = modem.getIMEI(imei);
   if (imeiLen > 0) {
     Serial.print("Module IMEI: "); Serial.println(imei);
   }
@@ -433,20 +433,20 @@ void moduleSetup() {
 // Read the module's power supply voltage
 float readVcc() {
   // Read battery voltage
-  if (!fona.getBattVoltage(&battLevel)) Serial.println(F("Failed to read batt"));
+  if (!modem.getBattVoltage(&battLevel)) Serial.println(F("Failed to read batt"));
   else Serial.print(F("battery = ")); Serial.print(battLevel); Serial.println(F(" mV"));
 
   // Read LiPo battery percentage
   // Note: This will NOT work properly on the LTE shield because the voltage
   // is regulated to 3.6V so you will always read about the same value!
-//  if (!fona.getBattPercent(&battLevel)) Serial.println(F("Failed to read batt"));
+//  if (!modem.getBattPercent(&battLevel)) Serial.println(F("Failed to read batt"));
 //  else Serial.print(F("BAT % = ")); Serial.print(battLevel); Serial.println(F("%"));
 
   return battLevel;
 }
 
 bool netStatus() {
-  int n = fona.getNetworkStatus();
+  int n = modem.getNetworkStatus();
   
   Serial.print(F("Network status ")); Serial.print(n); Serial.print(F(": "));
   if (n == 0) Serial.println(F("Not registered"));

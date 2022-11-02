@@ -1,4 +1,4 @@
-// Modified version of Adafruit FONA library for Botletics hardware
+// Adaptation of Adafruit FONA library for Botletics hardware
 // Original text below:
 
 /***************************************************
@@ -17,14 +17,18 @@
   Written by Limor Fried/Ladyada for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
  ****************************************************/
-#ifndef ADAFRUIT_FONA_H
-#define ADAFRUIT_FONA_H
+#ifndef BOTLETICS_MODEM_H
+#define BOTLETICS_MODEM_H
 
-#include "includes/FONAConfig.h"
-#include "includes/FONAExtIncludes.h"
-#include "includes/platform/FONAPlatform.h"
+/*
+ * BOTLETICS_MODEM_DEBUG
+ * Causes extensive debug output on the DebugStream;
+ * set in the appropriate header.
+ */
 
+// #define BOTLETICS_MODEM_DEBUG
 
+#include "includes/platform/ModemPlatform.h"
 
 #define SIM800L 1
 #define SIM800H 2
@@ -56,56 +60,56 @@
 
 // Set the preferred SMS storage.
 //   Use "SM" for storage on the SIM.
-//   Use "ME" for internal storage on the FONA chip
-#define FONA_PREF_SMS_STORAGE "\"SM\""
-//#define FONA_PREF_SMS_STORAGE "\"ME\""
+//   Use "ME" for internal storage on the chip
+#define MODEM_PREF_SMS_STORAGE "\"SM\""
+//#define MODEM_PREF_SMS_STORAGE "\"ME\""
 
-#define FONA_HEADSETAUDIO 0
-#define FONA_EXTAUDIO 1
+#define HEADSETAUDIO 0
+#define EXTAUDIO 1
 
-#define FONA_STTONE_DIALTONE 1
-#define FONA_STTONE_BUSY 2
-#define FONA_STTONE_CONGESTION 3
-#define FONA_STTONE_PATHACK 4
-#define FONA_STTONE_DROPPED 5
-#define FONA_STTONE_ERROR 6
-#define FONA_STTONE_CALLWAIT 7
-#define FONA_STTONE_RINGING 8
-#define FONA_STTONE_BEEP 16
-#define FONA_STTONE_POSTONE 17
-#define FONA_STTONE_ERRTONE 18
-#define FONA_STTONE_INDIANDIALTONE 19
-#define FONA_STTONE_USADIALTONE 20
+#define STTONE_DIALTONE 1
+#define STTONE_BUSY 2
+#define STTONE_CONGESTION 3
+#define STTONE_PATHACK 4
+#define STTONE_DROPPED 5
+#define STTONE_ERROR 6
+#define STTONE_CALLWAIT 7
+#define STTONE_RINGING 8
+#define STTONE_BEEP 16
+#define STTONE_POSTONE 17
+#define STTONE_ERRTONE 18
+#define STTONE_INDIANDIALTONE 19
+#define STTONE_USADIALTONE 20
 
-#define FONA_DEFAULT_TIMEOUT_MS 500
-#define FONA_NO_RST_PIN 99
+#define BOTLETICS_DEFAULT_TIMEOUT_MS 500
+#define BOTLETICS_NO_RST_PIN 99
 
-#define FONA_HTTP_GET   0
-#define FONA_HTTP_POST  1
-#define FONA_HTTP_HEAD  2
+#define _HTTP_GET   0
+#define _HTTP_POST  1
+#define _HTTP_HEAD  2
 
-#define FONA_CALL_READY 0
-#define FONA_CALL_FAILED 1
-#define FONA_CALL_UNKNOWN 2
-#define FONA_CALL_RINGING 3
-#define FONA_CALL_INPROGRESS 4
+#define CALL_READY 0
+#define CALL_FAILED 1
+#define CALL_UNKNOWN 2
+#define CALL_RINGING 3
+#define CALL_INPROGRESS 4
 
-#define FONA_SIM_ERROR -2
-#define FONA_SIM_UNKNOWN -1
-#define FONA_SIM_READY 0
-#define FONA_SIM_PIN 1
-#define FONA_SIM_PUK 2
-#define FONA_SIM_PH_PIN 3
-#define FONA_SIM_PH_PUK 4
-#define FONA_SIM_PIN2 5
-#define FONA_SIM_PUK2 6
+#define SIM_ERROR -2
+#define SIM_UNKNOWN -1
+#define SIM_READY 0
+#define SIM_PIN 1
+#define SIM_PUK 2
+#define SIM_PH_PIN 3
+#define SIM_PH_PUK 4
+#define SIM_PIN2 5
+#define SIM_PUK2 6
 
-#define SSL_FONA 0
+#define BOTLETICS_SSL 0
 
-class Adafruit_FONA : public FONAStreamType {
+class Botletics_modem : public BotleticsStreamType {
  public:
-  Adafruit_FONA(int8_t);
-  boolean begin(FONAStreamType &port);
+  Botletics_modem(int8_t);
+  boolean begin(BotleticsStreamType &port);
   uint8_t type();
 
   // Stream
@@ -115,11 +119,11 @@ class Adafruit_FONA : public FONAStreamType {
   int peek(void);
   void flush();
 
-  // FONA 3G requirements
+  // 3G requirements
   boolean setBaudrate(uint32_t baud);
 
   // Power, battery, and ADC
-  void powerOn(uint8_t FONA_PWRKEY);
+  void powerOn(uint8_t BOTLETICS_PWRKEY);
   boolean powerDown(void);
   boolean getADCVoltage(uint16_t *v);
   boolean getBattPercent(uint16_t *p);
@@ -153,7 +157,7 @@ class Adafruit_FONA : public FONAStreamType {
 
   // FM radio functions.
   boolean tuneFMradio(uint16_t station);
-  boolean FMradio(boolean onoff, uint8_t a = FONA_HEADSETAUDIO);
+  boolean FMradio(boolean onoff, uint8_t a = HEADSETAUDIO);
   boolean setFMVolume(uint8_t i);
   int8_t getFMVolume();
   int8_t getFMSignalLevel(uint16_t station);
@@ -172,7 +176,7 @@ class Adafruit_FONA : public FONAStreamType {
   // Time
   // boolean enableNetworkTimeSync(boolean onoff);
   uint8_t getNTPstatus();
-  boolean enableNTPTimeSync(boolean onoff, FONAFlashStringPtr ntpserver=0);
+  boolean enableNTPTimeSync(boolean onoff, FStringPtr ntpserver=0);
   boolean getTime(char *buff, uint16_t maxlen);
 
   // RTC
@@ -184,7 +188,7 @@ class Adafruit_FONA : public FONAStreamType {
   int8_t GPRSstate(void);
   boolean getGSMLoc(uint16_t *replycode, char *buff, uint16_t maxlen);
   boolean getGSMLoc(float *lat, float *lon);
-  void setNetworkSettings(FONAFlashStringPtr apn, FONAFlashStringPtr username=0, FONAFlashStringPtr password=0);
+  void setNetworkSettings(FStringPtr apn, FStringPtr username=0, FStringPtr password=0);
   boolean postData(const char *request_type, const char *URL, const char *body = "", const char *token = "", uint32_t bodylen = 0);
   boolean postData(const char *server, uint16_t port, const char *connType, const char *URL, const char *body = "");
   int8_t getNetworkType(char *typeStringBuffer, size_t bufferLength);
@@ -240,11 +244,11 @@ class Adafruit_FONA : public FONAStreamType {
   // HTTP low level interface (maps directly to SIM800 commands).
   boolean HTTP_init();
   boolean HTTP_term();
-  void HTTP_para_start(FONAFlashStringPtr parameter, boolean quoted = true);
+  void HTTP_para_start(FStringPtr parameter, boolean quoted = true);
   boolean HTTP_para_end(boolean quoted = true);
-  boolean HTTP_para(FONAFlashStringPtr parameter, const char *value);
-  boolean HTTP_para(FONAFlashStringPtr parameter, FONAFlashStringPtr value);
-  boolean HTTP_para(FONAFlashStringPtr parameter, int32_t value);
+  boolean HTTP_para(FStringPtr parameter, const char *value);
+  boolean HTTP_para(FStringPtr parameter, FStringPtr value);
+  boolean HTTP_para(FStringPtr parameter, int32_t value);
   boolean HTTP_data(uint32_t size, uint32_t maxTime=10000);
   boolean HTTP_action(uint8_t method, uint16_t *status, uint16_t *datalen, int32_t timeout = 10000);
   boolean HTTP_readall(uint16_t *datalen);
@@ -253,9 +257,9 @@ class Adafruit_FONA : public FONAStreamType {
   // HTTP high level interface (easier to use, less flexible).
   boolean HTTP_GET_start(char *url, uint16_t *status, uint16_t *datalen);
   void HTTP_GET_end(void);
-  boolean HTTP_POST_start(char *url, FONAFlashStringPtr contenttype, const uint8_t *postdata, uint16_t postdatalen,  uint16_t *status, uint16_t *datalen);
+  boolean HTTP_POST_start(char *url, FStringPtr contenttype, const uint8_t *postdata, uint16_t postdatalen,  uint16_t *status, uint16_t *datalen);
   void HTTP_POST_end(void);
-  void setUserAgent(FONAFlashStringPtr useragent);
+  void setUserAgent(FStringPtr useragent);
 
   // HTTPS
   void setHTTPSRedirect(boolean onoff);
@@ -272,10 +276,10 @@ class Adafruit_FONA : public FONAStreamType {
   boolean incomingCallNumber(char* phonenum);
 
   // Helper functions to verify responses.
-  boolean expectReply(FONAFlashStringPtr reply, uint16_t timeout = 10000);
-  boolean sendCheckReply(const char *send, const char *reply, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
-  boolean sendCheckReply(FONAFlashStringPtr send, FONAFlashStringPtr reply, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
-  boolean sendCheckReply(const char* send, FONAFlashStringPtr reply, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
+  boolean expectReply(FStringPtr reply, uint16_t timeout = 10000);
+  boolean sendCheckReply(const char *send, const char *reply, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
+  boolean sendCheckReply(FStringPtr send, FStringPtr reply, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
+  boolean sendCheckReply(const char* send, FStringPtr reply, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
 
 
  protected:
@@ -283,30 +287,30 @@ class Adafruit_FONA : public FONAStreamType {
   uint8_t _type;
 
   char replybuffer[255];
-  FONAFlashStringPtr apn;
-  FONAFlashStringPtr apnusername;
-  FONAFlashStringPtr apnpassword;
+  FStringPtr apn;
+  FStringPtr apnusername;
+  FStringPtr apnpassword;
   boolean httpsredirect;
-  FONAFlashStringPtr useragent;
-  FONAFlashStringPtr ok_reply;
+  FStringPtr useragent;
+  FStringPtr ok_reply;
 
   // HTTP helpers
   boolean HTTP_setup(char *url);
 
   void flushInput();
   uint16_t readRaw(uint16_t b);
-  uint8_t readline(uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS, boolean multiline = false);
-  uint8_t getReply(const char *send, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
-  uint8_t getReply(FONAFlashStringPtr send, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
-  uint8_t getReply(FONAFlashStringPtr prefix, char *suffix, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
-  uint8_t getReply(FONAFlashStringPtr prefix, int32_t suffix, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
-  uint8_t getReply(FONAFlashStringPtr prefix, int32_t suffix1, int32_t suffix2, uint16_t timeout); // Don't set default value or else function call is ambiguous.
-  uint8_t getReplyQuoted(FONAFlashStringPtr prefix, FONAFlashStringPtr suffix, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
+  uint8_t readline(uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS, boolean multiline = false);
+  uint8_t getReply(const char *send, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
+  uint8_t getReply(FStringPtr send, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
+  uint8_t getReply(FStringPtr prefix, char *suffix, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
+  uint8_t getReply(FStringPtr prefix, int32_t suffix, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
+  uint8_t getReply(FStringPtr prefix, int32_t suffix1, int32_t suffix2, uint16_t timeout); // Don't set default value or else function call is ambiguous.
+  uint8_t getReplyQuoted(FStringPtr prefix, FStringPtr suffix, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
 
-  boolean sendCheckReply(FONAFlashStringPtr prefix, char *suffix, FONAFlashStringPtr reply, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
-  boolean sendCheckReply(FONAFlashStringPtr prefix, int32_t suffix, FONAFlashStringPtr reply, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
-  boolean sendCheckReply(FONAFlashStringPtr prefix, int32_t suffix, int32_t suffix2, FONAFlashStringPtr reply, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
-  boolean sendCheckReplyQuoted(FONAFlashStringPtr prefix, FONAFlashStringPtr suffix, FONAFlashStringPtr reply, uint16_t timeout = FONA_DEFAULT_TIMEOUT_MS);
+  boolean sendCheckReply(FStringPtr prefix, char *suffix, FStringPtr reply, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
+  boolean sendCheckReply(FStringPtr prefix, int32_t suffix, FStringPtr reply, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
+  boolean sendCheckReply(FStringPtr prefix, int32_t suffix, int32_t suffix2, FStringPtr reply, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
+  boolean sendCheckReplyQuoted(FStringPtr prefix, FStringPtr suffix, FStringPtr reply, uint16_t timeout = BOTLETICS_DEFAULT_TIMEOUT_MS);
 
   void mqtt_connect_message(const char *protocol, byte *mqtt_message, const char *client_id, const char *username, const char *password);
   void mqtt_publish_message(byte *mqtt_message, const char *topic, const char *message);
@@ -315,33 +319,33 @@ class Adafruit_FONA : public FONAStreamType {
   boolean mqtt_sendPacket(byte *packet, byte len);
 
 
-  boolean parseReply(FONAFlashStringPtr toreply,
+  boolean parseReply(FStringPtr toreply,
           uint16_t *v, char divider  = ',', uint8_t index=0);
-  boolean parseReplyFloat(FONAFlashStringPtr toreply,
+  boolean parseReplyFloat(FStringPtr toreply,
            float *f, char divider, uint8_t index);
-  boolean parseReply(FONAFlashStringPtr toreply,
+  boolean parseReply(FStringPtr toreply,
           char *v, char divider  = ',', uint8_t index=0);
-  boolean parseReplyQuoted(FONAFlashStringPtr toreply,
+  boolean parseReplyQuoted(FStringPtr toreply,
           char *v, int maxlen, char divider, uint8_t index);
 
-  boolean sendParseReply(FONAFlashStringPtr tosend,
-       FONAFlashStringPtr toreply,
+  boolean sendParseReply(FStringPtr tosend,
+       FStringPtr toreply,
        uint16_t *v, char divider = ',', uint8_t index=0);
 
-  boolean sendParseReplyFloat(FONAFlashStringPtr tosend,
-         FONAFlashStringPtr toreply,
+  boolean sendParseReplyFloat(FStringPtr tosend,
+         FStringPtr toreply,
          float *f, char divider = ',', uint8_t index=0);
 
   static boolean _incomingCall;
   static void onIncomingCall();
 
-  FONAStreamType *mySerial;
+  BotleticsStreamType *mySerial;
 };
 
-class Adafruit_FONA_3G : public Adafruit_FONA {
+class Botletics_modem_3G : public Botletics_modem {
 
  public:
-  Adafruit_FONA_3G (int8_t r) : Adafruit_FONA(r) { _type = SIM5320A; }
+  Botletics_modem_3G (int8_t r) : Botletics_modem(r) { _type = SIM5320A; }
 
     boolean getBattVoltage(uint16_t *v);
     boolean powerDown(void);
@@ -353,18 +357,18 @@ class Adafruit_FONA_3G : public Adafruit_FONA {
     // boolean postData3G(const char *server, uint16_t port, const char *connType, const char *URL);
 
  protected:
-    boolean parseReply(FONAFlashStringPtr toreply,
+    boolean parseReply(FStringPtr toreply,
            float *f, char divider, uint8_t index);
 
-    boolean sendParseReply(FONAFlashStringPtr tosend,
-         FONAFlashStringPtr toreply,
+    boolean sendParseReply(FStringPtr tosend,
+         FStringPtr toreply,
          float *f, char divider = ',', uint8_t index=0);
 };
 
-class Adafruit_FONA_LTE : public Adafruit_FONA {
+class Botletics_modem_LTE : public Botletics_modem {
 
  public:
-  Adafruit_FONA_LTE () : Adafruit_FONA(FONA_NO_RST_PIN) { _type = SIM7000; _type = SIM7070; _type = SIM7500; }
+  Botletics_modem_LTE () : Botletics_modem(BOTLETICS_NO_RST_PIN) { _type = SIM7000; _type = SIM7070; _type = SIM7500; }
 
   boolean setPreferredMode(uint8_t mode);
   boolean setPreferredLTEMode(uint8_t mode);
