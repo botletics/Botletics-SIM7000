@@ -1,5 +1,5 @@
-# Improved Version of Adafruit FONA Library
-The code in this repository is an improved version of the Adafruit FONA library which adds LTE functionality for the SIM7000 module as well as other improvements for other SIMCom modules.
+# Adapted Version of Adafruit FONA Library
+The code in this repository is an adapted version of the Adafruit FONA library which adds LTE functionality for the SIM7000 module as well as other improvements for other SIMCom modules.
 
 The text below is from the original Adafruit FONA library:
 
