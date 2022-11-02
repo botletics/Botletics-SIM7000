@@ -40,7 +40,7 @@
 #endif
 
 // a few typedefs to keep things portable
-typedef	Stream 						FONAStreamType;
+typedef	Stream 						BotleticsStreamType;
 typedef const __FlashStringHelper *	FStringPtr;
 
 #define prog_char  					char PROGMEM

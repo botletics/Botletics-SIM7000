@@ -403,23 +403,23 @@ void loop() {
 
     case 'H': {
         // Set Headphone output
-        if (! fona.setAudio(FONA_HEADSETAUDIO)) {
+        if (! fona.setAudio(HEADSETAUDIO)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
         }
-        fona.setMicVolume(FONA_HEADSETAUDIO, 15);
+        fona.setMicVolume(HEADSETAUDIO, 15);
         break;
       }
     case 'e': {
         // Set External output
-        if (! fona.setAudio(FONA_EXTAUDIO)) {
+        if (! fona.setAudio(EXTAUDIO)) {
           Serial.println(F("Failed"));
         } else {
           Serial.println(F("OK!"));
         }
 
-        fona.setMicVolume(FONA_EXTAUDIO, 10);
+        fona.setMicVolume(EXTAUDIO, 10);
         break;
       }
 

@@ -1,4 +1,4 @@
-// Adaptationof Adafruit FONA library for Botletics hardware
+// Adaptation of Adafruit FONA library for Botletics hardware
 // Original text below:
 
 /***************************************************
@@ -64,35 +64,35 @@
 #define MODEM_PREF_SMS_STORAGE "\"SM\""
 //#define MODEM_PREF_SMS_STORAGE "\"ME\""
 
-#define FONA_HEADSETAUDIO 0
-#define FONA_EXTAUDIO 1
+#define HEADSETAUDIO 0
+#define EXTAUDIO 1
 
-#define FONA_STTONE_DIALTONE 1
-#define FONA_STTONE_BUSY 2
-#define FONA_STTONE_CONGESTION 3
-#define FONA_STTONE_PATHACK 4
-#define FONA_STTONE_DROPPED 5
-#define FONA_STTONE_ERROR 6
-#define FONA_STTONE_CALLWAIT 7
-#define FONA_STTONE_RINGING 8
-#define FONA_STTONE_BEEP 16
-#define FONA_STTONE_POSTONE 17
-#define FONA_STTONE_ERRTONE 18
-#define FONA_STTONE_INDIANDIALTONE 19
-#define FONA_STTONE_USADIALTONE 20
+#define STTONE_DIALTONE 1
+#define STTONE_BUSY 2
+#define STTONE_CONGESTION 3
+#define STTONE_PATHACK 4
+#define STTONE_DROPPED 5
+#define STTONE_ERROR 6
+#define STTONE_CALLWAIT 7
+#define STTONE_RINGING 8
+#define STTONE_BEEP 16
+#define STTONE_POSTONE 17
+#define STTONE_ERRTONE 18
+#define STTONE_INDIANDIALTONE 19
+#define STTONE_USADIALTONE 20
 
 #define BOTLETICS_DEFAULT_TIMEOUT_MS 500
-#define FONA_NO_RST_PIN 99
+#define BOTLETICS_NO_RST_PIN 99
 
 #define _HTTP_GET   0
 #define _HTTP_POST  1
 #define _HTTP_HEAD  2
 
-#define FONA_CALL_READY 0
+#define CALL_READY 0
 #define CALL_FAILED 1
-#define FONA_CALL_UNKNOWN 2
-#define FONA_CALL_RINGING 3
-#define FONA_CALL_INPROGRESS 4
+#define CALL_UNKNOWN 2
+#define CALL_RINGING 3
+#define CALL_INPROGRESS 4
 
 #define SIM_ERROR -2
 #define SIM_UNKNOWN -1
@@ -106,10 +106,10 @@
 
 #define BOTLETICS_SSL 0
 
-class Botletics_modem : public FONAStreamType {
+class Botletics_modem : public BotleticsStreamType {
  public:
   Botletics_modem(int8_t);
-  boolean begin(FONAStreamType &port);
+  boolean begin(BotleticsStreamType &port);
   uint8_t type();
 
   // Stream
@@ -119,7 +119,7 @@ class Botletics_modem : public FONAStreamType {
   int peek(void);
   void flush();
 
-  // FONA 3G requirements
+  // 3G requirements
   boolean setBaudrate(uint32_t baud);
 
   // Power, battery, and ADC
@@ -157,7 +157,7 @@ class Botletics_modem : public FONAStreamType {
 
   // FM radio functions.
   boolean tuneFMradio(uint16_t station);
-  boolean FMradio(boolean onoff, uint8_t a = FONA_HEADSETAUDIO);
+  boolean FMradio(boolean onoff, uint8_t a = HEADSETAUDIO);
   boolean setFMVolume(uint8_t i);
   int8_t getFMVolume();
   int8_t getFMSignalLevel(uint16_t station);
@@ -339,7 +339,7 @@ class Botletics_modem : public FONAStreamType {
   static boolean _incomingCall;
   static void onIncomingCall();
 
-  FONAStreamType *mySerial;
+  BotleticsStreamType *mySerial;
 };
 
 class Botletics_modem_3G : public Botletics_modem {
@@ -368,7 +368,7 @@ class Botletics_modem_3G : public Botletics_modem {
 class Botletics_modem_LTE : public Botletics_modem {
 
  public:
-  Botletics_modem_LTE () : Botletics_modem(FONA_NO_RST_PIN) { _type = SIM7000; _type = SIM7070; _type = SIM7500; }
+  Botletics_modem_LTE () : Botletics_modem(BOTLETICS_NO_RST_PIN) { _type = SIM7000; _type = SIM7070; _type = SIM7500; }
 
   boolean setPreferredMode(uint8_t mode);
   boolean setPreferredLTEMode(uint8_t mode);
