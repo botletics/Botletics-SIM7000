@@ -73,16 +73,16 @@ SoftwareSerial *modemSerial = &modemSS;
 
 // Use this for 2G modules
 #ifdef SIMCOM_2G
-  Botletics_modem modem = Botletics_modem(RST);
+  Adafruit_FONA modem = Adafruit_FONA(RST);
   
 // Use this one for 3G modules
 #elif defined(SIMCOM_3G)
-  Botletics_modem_3G modem = Botletics_modem_3G(RST);
+  Adafruit_FONA_3G modem = Adafruit_FONA_3G(RST);
   
 // Use this one for LTE CAT-M/NB-IoT modules (like SIM7000)
 // Notice how we don't include the reset pin because it's reserved for emergencies on the LTE module!
 #elif defined(SIMCOM_7000) || defined(SIMCOM_7070) || defined(SIMCOM_7500) || defined(SIMCOM_7600)
-  Botletics_modem_LTE modem = Botletics_modem_LTE();
+  Adafruit_FONA_LTE modem = Adafruit_FONA_LTE();
 #endif
 
 /************************* MQTT SETUP *********************************/
@@ -93,8 +93,8 @@ SoftwareSerial *modemSerial = &modemSS;
 #define AIO_USERNAME    "yourUsernameHere"
 #define AIO_KEY         "YourAIOkeyHere"
 
-// Setup the FONA MQTT class by passing in the modem class and MQTT server and login details.
-Adafruit_MQTT_FONA mqtt(&modem, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+// Setup the FONA MQTT class by passing in the fona class and MQTT server and login details.
+Adafruit_MQTT_FONA mqtt(&fona, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 
 // How many transmission failures in a row we're OK with before reset
 uint8_t txfailures = 0;  
