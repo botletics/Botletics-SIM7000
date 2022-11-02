@@ -35,8 +35,6 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
-//#include "Botletics_modem.h"
-
 // Define *one* of the following lines:
 //#define SIMCOM_2G // SIM800/808/900/908, etc.
 //#define SIMCOM_3G // SIM5320

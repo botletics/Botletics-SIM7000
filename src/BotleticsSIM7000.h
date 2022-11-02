@@ -26,7 +26,7 @@
  * set in the appropriate header.
  */
 
-// #define BOTLETICS_MODEM_DEBUG
+#define BOTLETICS_MODEM_DEBUG
 
 #include "includes/platform/Modem.h"
 
