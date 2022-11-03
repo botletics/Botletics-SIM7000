@@ -13,7 +13,7 @@
  *  License: GNU GPL v3.0
  */
 
-#include "BotleticsSIM7000.h" // https://github.com/botletics/SIM7000-Shield-Library/tree/master/src
+#include "BotleticsSIM7000.h" // https://github.com/botletics/Botletics-SIM7000/tree/main/src
 
 #if defined(ARDUINO_SAMD_ZERO) && defined(SERIAL_PORT_USBVIRTUAL)
   // Required for Serial on Zero based boards

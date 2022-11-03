@@ -14,7 +14,7 @@
  *  License: GNU GPL v3.0
  */
 
-#include "BotleticsSIM7000.h" // https://github.com/botletics/SIM7000-Shield-Library/tree/master/src
+#include "BotleticsSIM7000.h" // https://github.com/botletics/Botletics-SIM7000/tree/main/src
 #include <SPI.h>
 #include <SD.h>
 

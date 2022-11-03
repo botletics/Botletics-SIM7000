@@ -16,7 +16,7 @@
  *  License: GNU GPL v3.0
  */
 
-#include "BotleticsSIM7000.h" // https://github.com/botletics/SIM7000-Shield-Library/tree/master/src
+#include "BotleticsSIM7000.h" // https://github.com/botletics/Botletics-SIM7000/tree/main/src
 
 // You don't need the following includes if you're not using MQTT
 // You can find the Adafruit MQTT library here: https://github.com/adafruit/Adafruit_MQTT_Library
