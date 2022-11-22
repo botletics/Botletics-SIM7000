@@ -5,7 +5,7 @@
  *  
  *  Author: Timothy Woo (www.botletics.com)
  *  Github: https://github.com/botletics/SIM7000-LTE-Shield
- *  Last Updated: 7/4/2022
+ *  Last Updated: 11/22/2022
  *  License: GNU GPL v3.0
  */
 
@@ -686,102 +686,34 @@ void loop() {
     /******* GPRS *******/
 
     case 'g': {
-        // turn GPRS off
-        if (!modem.enableGPRS(false))
-          Serial.println(F("Failed to turn off"));
-        break;
+        // disable data
+        #if defined(SIMCOM_7000) || defined (SIMCOM_7070)
+          if (!modem.openWirelessConnection(false))
+            Serial.println(F("Failed to turn off"));
+          break;
+        #else
+          if (!modem.enableGPRS(false))
+            Serial.println(F("Failed to turn off"));
+          break;
+        #endif
       }
     case 'G': {
-        // turn GPRS off first for SIM7500/7600
-        #if defined(SIMCOM_7500) || defined(SIMCOM_7600)
+        // turn GPRS off first for SIM7500
+        #if defined(SIMCOM_7500) || defined (SIMCOM_7600)
           modem.enableGPRS(false);
         #endif
         
-        // turn GPRS on
-        if (!modem.enableGPRS(true))
-          Serial.println(F("Failed to turn on"));
-        break;
-      }
-
-/*
-    case 'w': {
-        // read website URL
-        uint16_t statuscode;
-        int16_t length;
-        char url[80];
-
-        flushSerial();
-        Serial.println(F("NOTE: in beta! Use small webpages to read!"));
-        Serial.println(F("URL to read (e.g. www.adafruit.com/testwifi/index.html):"));
-        Serial.print(F("http://")); readline(url, 79);
-        Serial.println(url);
-
-        Serial.println(F("****"));
-        if (!modem.HTTP_GET_start(url, &statuscode, (uint16_t *)&length)) {
-          Serial.println("Failed!");
+        // enable data
+        #if defined(SIMCOM_7000) || defined (SIMCOM_7070)
+          if (!modem.openWirelessConnection(true))
+            Serial.println(F("Failed to turn on"));
           break;
-        }
-        while (length > 0) {
-          while (modem.available()) {
-            char c = modem.read();
-
-            // Serial.write is too slow, we'll write directly to Serial register!
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
-            loop_until_bit_is_set(UCSR0A, UDRE0); // Wait until data register empty
-            UDR0 = c;
-#else
-            Serial.write(c);
-#endif
-            length--;
-            if (! length) break;
-          }
-        }
-        Serial.println(F("\n****"));
-        modem.HTTP_GET_end();
-        break;
-      }
-
-    case 'W': {
-        // Post data to website
-        uint16_t statuscode;
-        int16_t length;
-        char url[80];
-        char data[80];
-
-        flushSerial();
-        Serial.println(F("NOTE: in beta! Use simple websites to post!"));
-        Serial.println(F("URL to post (e.g. httpbin.org/post):"));
-        Serial.print(F("http://")); readline(url, 79);
-        Serial.println(url);
-        Serial.println(F("Data to post (e.g. \"foo\" or \"{\"simple\":\"json\"}\"):"));
-        readline(data, 79);
-        Serial.println(data);
-
-        Serial.println(F("****"));
-        if (!modem.HTTP_POST_start(url, F("text/plain"), (uint8_t *) data, strlen(data), &statuscode, (uint16_t *)&length)) {
-          Serial.println("Failed!");
+        #else
+          if (!modem.enableGPRS(true))
+            Serial.println(F("Failed to turn on"));
           break;
-        }
-        while (length > 0) {
-          while (modem.available()) {
-            char c = modem.read();
-
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
-            loop_until_bit_is_set(UCSR0A, UDRE0); // Wait until data register empty
-            UDR0 = c;
-#else
-            Serial.write(c);
-#endif
-
-            length--;
-            if (! length) break;
-          }
-        }
-        Serial.println(F("\n****"));
-        modem.HTTP_POST_end();
-        break;
+        #endif        
       }
-*/
     case '1': {
         // Get connection type, cellular band, carrier name, etc.
         modem.getNetworkInfo();        
@@ -806,7 +738,7 @@ void loop() {
         // Format the floating point numbers as needed
         dtostrf(temperature, 1, 2, tempBuff); // float_val, min_width, digits_after_decimal, char_buffer
 
-        #ifdef SIMCOM_7070
+        #if defined(SIMCOM_7000) || defined(SIMCOM_7070)
             // Add headers as needed
             // modem.HTTP_addHeader("User-Agent", "SIM7070", 7);
             // modem.HTTP_addHeader("Cache-control", "no-cache", 8);

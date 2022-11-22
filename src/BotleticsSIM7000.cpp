@@ -2274,7 +2274,8 @@ boolean Botletics_modem_LTE::HTTP_GET(const char *URI) {
 
   // Read server response
   getReply(F("AT+SHREAD=0,"), datalen, 10000);
-  readline();
+  readline(); // Eat 'OK'
+  if (_type == SIM7000) readline();
   DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // +SHREAD: <datalen>
   readline(10000);
   DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // Print out server reply

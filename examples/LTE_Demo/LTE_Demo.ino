@@ -9,7 +9,7 @@
 
     Author: Timothy Woo (www.botletics.com)
     Github: https://github.com/botletics/SIM7000-LTE-Shield
-    Last Updated: 7/4/2022
+    Last Updated: 11/22/2022
     License: GNU GPL v3.0
 */
 
@@ -894,10 +894,16 @@ void loop() {
     /*********************************** GPRS */
 
     case 'g': {
-        // turn GPRS off
-        if (!modem.enableGPRS(false))
-          Serial.println(F("Failed to turn off"));
-        break;
+        // disable data
+        #if defined(SIMCOM_7000) || defined (SIMCOM_7070)
+          if (!modem.openWirelessConnection(false))
+            Serial.println(F("Failed to turn off"));
+          break;
+        #else
+          if (!modem.enableGPRS(false))
+            Serial.println(F("Failed to turn off"));
+          break;
+        #endif
       }
     case 'G': {
         // turn GPRS off first for SIM7500
@@ -905,10 +911,16 @@ void loop() {
           modem.enableGPRS(false);
         #endif
         
-        // turn GPRS on
-        if (!modem.enableGPRS(true))
-          Serial.println(F("Failed to turn on"));
-        break;
+        // enable data
+        #if defined(SIMCOM_7000) || defined (SIMCOM_7070)
+          if (!modem.openWirelessConnection(true))
+            Serial.println(F("Failed to turn on"));
+          break;
+        #else
+          if (!modem.enableGPRS(true))
+            Serial.println(F("Failed to turn on"));
+          break;
+        #endif        
       }
     case 'l': {
         // check for GSMLOC (requires GPRS)
@@ -1023,7 +1035,7 @@ void loop() {
         // Format the floating point numbers as needed
         dtostrf(temperature, 1, 2, tempBuff); // float_val, min_width, digits_after_decimal, char_buffer
 
-        #ifdef SIMCOM_7070
+        #if defined(SIMCOM_7000) || defined(SIMCOM_7070)
             // Add headers as needed
             // modem.HTTP_addHeader("User-Agent", "SIM7070", 7);
             // modem.HTTP_addHeader("Cache-control", "no-cache", 8);
