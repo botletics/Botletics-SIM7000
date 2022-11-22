@@ -895,15 +895,9 @@ void loop() {
 
     case 'g': {
         // disable data
-        #if defined(SIMCOM_7000) || defined (SIMCOM_7070)
-          if (!modem.openWirelessConnection(false))
-            Serial.println(F("Failed to turn off"));
-          break;
-        #else
-          if (!modem.enableGPRS(false))
-            Serial.println(F("Failed to turn off"));
-          break;
-        #endif
+        if (!modem.enableGPRS(false))
+          Serial.println(F("Failed to turn off"));
+        break;
       }
     case 'G': {
         // turn GPRS off first for SIM7500
@@ -912,15 +906,9 @@ void loop() {
         #endif
         
         // enable data
-        #if defined(SIMCOM_7000) || defined (SIMCOM_7070)
-          if (!modem.openWirelessConnection(true))
+        if (!modem.enableGPRS(true))
             Serial.println(F("Failed to turn on"));
-          break;
-        #else
-          if (!modem.enableGPRS(true))
-            Serial.println(F("Failed to turn on"));
-          break;
-        #endif        
+        break;
       }
     case 'l': {
         // check for GSMLOC (requires GPRS)

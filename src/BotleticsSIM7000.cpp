@@ -1613,17 +1613,15 @@ boolean Botletics_modem::enableGPRS(boolean onoff) {
   }
   else {
     if (onoff) {
-      // if (_type < SIM7000) { // UNCOMMENT FOR LTE ONLY!
-        // disconnect all sockets
-        sendCheckReply(F("AT+CIPSHUT"), F("SHUT OK"), 20000);
+      // disconnect all sockets
+      sendCheckReply(F("AT+CIPSHUT"), F("SHUT OK"), 20000);
 
-        if (! sendCheckReply(F("AT+CGATT=1"), ok_reply, 10000))
-          return false;
+      if (! sendCheckReply(F("AT+CGATT=1"), ok_reply, 10000))
+        return false;
 
       // set bearer profile! connection type GPRS
       if (! sendCheckReply(F("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\""), ok_reply, 10000))
         return false;
-      // } // UNCOMMENT FOR LTE ONLY!
 
       delay(200); // This seems to help the next line run the first time
 
@@ -1633,7 +1631,6 @@ boolean Botletics_modem::enableGPRS(boolean onoff) {
         if (! sendCheckReplyQuoted(F("AT+SAPBR=3,1,\"APN\","), apn, ok_reply, 10000))
           return false;
 
-        // if (_type < SIM7000) { // UNCOMMENT FOR LTE ONLY!
           // send AT+CSTT,"apn","user","pass"
           flushInput();
 
@@ -1663,7 +1660,6 @@ boolean Botletics_modem::enableGPRS(boolean onoff) {
           DEBUG_PRINTLN("\"");
 
           if (! expectReply(ok_reply)) return false;
-        // } // UNCOMMENT FOR LTE ONLY!
 
         // set username/password
         if (apnusername) {
@@ -1682,13 +1678,11 @@ boolean Botletics_modem::enableGPRS(boolean onoff) {
       if (! sendCheckReply(F("AT+SAPBR=1,1"), ok_reply, 30000))
         return false;
 
-      // if (_type < SIM7000) { // UNCOMMENT FOR LTE ONLY!
-        // bring up wireless connection
-        if (! sendCheckReply(F("AT+CIICR"), ok_reply, 10000))
-          return false;
-      // } // UNCOMMENT FOR LTE ONLY!
+      // bring up wireless connection
+      if (! sendCheckReply(F("AT+CIICR"), ok_reply, 10000))
+        return false;
 
-      // if (! openWirelessConnection(true)) return false;
+      openWirelessConnection(true);
       // if (! wirelessConnStatus()) return false;
 
     } else {
@@ -1700,11 +1694,10 @@ boolean Botletics_modem::enableGPRS(boolean onoff) {
       if (! sendCheckReply(F("AT+SAPBR=0,1"), ok_reply, 10000))
         return false;
 
-      // if (_type < SIM7000) { // UNCOMMENT FOR LTE ONLY!
-        if (! sendCheckReply(F("AT+CGATT=0"), ok_reply, 10000))
-          return false;
-    // } // UNCOMMENT FOR LTE ONLY!
+      if (! sendCheckReply(F("AT+CGATT=0"), ok_reply, 10000))
+        return false;
 
+      openWirelessConnection(false);
     }
   }
   return true;
