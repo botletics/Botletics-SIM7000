@@ -56,13 +56,13 @@
 //#define SIMCOM_7600
 
 // For botletics SIM7000 shield with ESP32
-#define BOTLETICS_PWRKEY 18
+#define PWRKEY 18
 #define RST 5
 #define TX 16 // ESP32 hardware serial RX2 (GPIO16)
 #define RX 17 // ESP32 hardware serial TX2 (GPIO17)
 
 // For botletics SIM7500 shield
-//#define BOTLETICS_PWRKEY 6
+//#define PWRKEY 6
 //#define RST 7
 ////#define DTR 9 // Connect with solder jumper
 ////#define RI 8 // Need to enable via AT commands
@@ -101,7 +101,7 @@ void setup() {
 
   // Turn on the module by pulsing PWRKEY low for a little bit
   // This amount of time depends on the specific module that's used
-  modem.powerOn(BOTLETICS_PWRKEY); // Power on the module
+  modem.powerOn(PWRKEY); // Power on the module
 
   Serial.begin(9600);
   Serial.println(F("ESP32 SIMCom Basic Test"));

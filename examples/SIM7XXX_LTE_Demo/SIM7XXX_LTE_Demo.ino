@@ -41,7 +41,7 @@
 
 #if defined(SIMCOM_7000) || defined(SIMCOM_7070)
   // For botletics SIM7000/7070 shield
-  #define BOTLETICS_PWRKEY 6
+  #define PWRKEY 6
   #define RST 7 // No RST pin for SIM7070
   //#define DTR 8 // Connect with solder jumper
   //#define RI 9 // Need to enable via AT commands
@@ -51,7 +51,7 @@
   
 #elif defined(SIMCOM_7500) || defined(SIMCOM_7600)
 // For botletics SIM7500 shield
-  #define BOTLETICS_PWRKEY 6
+  #define PWRKEY 6
   #define RST 7
   //#define DTR 9 // Connect with solder jumper
   //#define RI 8 // Need to enable via AT commands
@@ -95,7 +95,7 @@ void setup() {
   
   // Turn on the module by pulsing PWRKEY low for a little bit
   // This amount of time depends on the specific module that's used
-  modem.powerOn(BOTLETICS_PWRKEY);
+  modem.powerOn(PWRKEY);
 
   Serial.begin(9600);
   Serial.println(F("SIM7XXX Demo"));

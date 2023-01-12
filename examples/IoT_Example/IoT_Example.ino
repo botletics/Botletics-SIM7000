@@ -58,7 +58,7 @@
 
 /************************* PIN DEFINITIONS *********************************/
 // For botletics SIM7000 shield
-#define BOTLETICS_PWRKEY 6
+#define PWRKEY 6
 #define RST 7
 //#define DTR 8 // Connect with solder jumper
 //#define RI 9 // Need to enable via AT commands
@@ -67,7 +67,7 @@
 //#define T_ALERT 12 // Connect with solder jumper
 
 // For botletics SIM7500 shield
-//#define BOTLETICS_PWRKEY 6
+//#define PWRKEY 6
 //#define RST 7
 ////#define DTR 9 // Connect with solder jumper
 ////#define RI 8 // Need to enable via AT commands
@@ -197,7 +197,7 @@ void setup() {
   pinMode(RST, OUTPUT);
   digitalWrite(RST, HIGH); // Default state
 
-  modem.powerOn(BOTLETICS_PWRKEY); // Power on the module
+  modem.powerOn(PWRKEY); // Power on the module
   moduleSetup(); // Establishes first-time serial comm and prints IMEI
 
   if (!tempsensor.begin()) {
@@ -562,7 +562,7 @@ void loop() {
   // Only run the initialization again if the module was powered off
   // since it resets back to 115200 baud instead of 4800.
   #ifdef turnOffShield
-    modem.powerOn(BOTLETICS_PWRKEY); // Powers on the module if it was off previously
+    modem.powerOn(PWRKEY); // Powers on the module if it was off previously
     moduleSetup();
   #endif
     

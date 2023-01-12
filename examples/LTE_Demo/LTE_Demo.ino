@@ -44,19 +44,19 @@
 //#define SIMCOM_7600
 
 // For TinySine SIM5320 shield
-//#define BOTLETICS_PWRKEY 8
+//#define PWRKEY 8
 //#define RST 9
 //#define TX 2 // Microcontroller RX (note: won't work on Mega)
 //#define RX 3 // Microcontroller TX
 
 // ESP8266 + SIM7000 shield
-//#define BOTLETICS_PWRKEY 14 // D5 on NodeMCU
+//#define PWRKEY 14 // D5 on NodeMCU
 //#define RST 12 // D6 on NodeMCU
 //#define TX 4 // D2 on NodeMCU, microcontroller RX
 //#define RX 5 // D1 on NodeMCU, microcontroller TX
 
 // For botletics SIM7000 shield
-#define BOTLETICS_PWRKEY 6
+#define PWRKEY 6
 #define RST 7
 //#define DTR 8 // Connect with solder jumper
 //#define RI 9 // Need to enable via AT commands
@@ -65,7 +65,7 @@
 //#define T_ALERT 12 // Connect with solder jumper
 
 // For botletics SIM7500 shield
-//#define BOTLETICS_PWRKEY 6
+//#define PWRKEY 6
 //#define RST 7
 ////#define DTR 9 // Connect with solder jumper
 ////#define RI 8 // Need to enable via AT commands
@@ -114,11 +114,11 @@ void setup() {
   pinMode(RST, OUTPUT);
   digitalWrite(RST, HIGH); // Default state
 
-  pinMode(BOTLETICS_PWRKEY, OUTPUT);
+  pinMode(PWRKEY, OUTPUT);
 
   // Turn on the module by pulsing PWRKEY low for a little bit
   // This amount of time depends on the specific module that's used
-  modem.powerOn(BOTLETICS_PWRKEY); // Power on the module
+  modem.powerOn(PWRKEY); // Power on the module
 
   Serial.begin(9600);
   Serial.println(F("Modem basic test"));

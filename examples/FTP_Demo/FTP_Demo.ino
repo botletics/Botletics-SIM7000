@@ -37,7 +37,7 @@ const int CS_pin = 53;
 
 /************************* PIN DEFINITIONS *********************************/
 // For botletics SIM7000 shield
-#define BOTLETICS_PWRKEY 6
+#define PWRKEY 6
 #define RST 7
 //#define DTR 8 // Connect with solder jumper
 //#define RI 9 // Need to enable via AT commands
@@ -46,7 +46,7 @@ const int CS_pin = 53;
 //#define T_ALERT 12 // Connect with solder jumper
 
 // For botletics SIM7500 shield
-//#define BOTLETICS_PWRKEY 6
+//#define PWRKEY 6
 //#define RST 7
 ////#define DTR 9 // Connect with solder jumper
 ////#define RI 8 // Need to enable via AT commands
@@ -110,7 +110,7 @@ void setup() {
   pinMode(RST, OUTPUT);
   digitalWrite(RST, HIGH); // Default state
 
-  modem.powerOn(BOTLETICS_PWRKEY); // Power on the module
+  modem.powerOn(PWRKEY); // Power on the module
   moduleSetup(); // Establishes first-time serial comm and prints IMEI
 
   // Set modem to full functionality

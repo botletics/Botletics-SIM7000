@@ -22,7 +22,7 @@
 
 /************************* PIN DEFINITIONS *********************************/
 // For botletics SIM70X0 shield
-#define BOTLETICS_PWRKEY 6
+#define PWRKEY 6
 #define RST 7
 //#define DTR 8 // Connect with solder jumper
 //#define RI 9 // Need to enable via AT commands
@@ -109,7 +109,7 @@ void setup() {
   pinMode(RST, OUTPUT);
   digitalWrite(RST, HIGH); // Default state
 
-  modem.powerOn(BOTLETICS_PWRKEY); // Power on the module
+  modem.powerOn(PWRKEY); // Power on the module
   moduleSetup(); // Establishes first-time serial comm and prints IMEI
 
   if (!tempsensor.begin()) {
