@@ -9,7 +9,7 @@
 
     Author: Timothy Woo (www.botletics.com)
     Github: https://github.com/botletics/SIM7000-LTE-Shield
-    Last Updated: 11/22/2022
+    Last Updated: 3/26/2025
     License: GNU GPL v3.0
 */
 
@@ -44,19 +44,19 @@
 //#define SIMCOM_7600
 
 // For TinySine SIM5320 shield
-//#define PWRKEY 8
+//#define BOTLETICS_PWRKEY 8
 //#define RST 9
 //#define TX 2 // Microcontroller RX (note: won't work on Mega)
 //#define RX 3 // Microcontroller TX
 
 // ESP8266 + SIM7000 shield
-//#define PWRKEY 14 // D5 on NodeMCU
+//#define BOTLETICS_PWRKEY 14 // D5 on NodeMCU
 //#define RST 12 // D6 on NodeMCU
 //#define TX 4 // D2 on NodeMCU, microcontroller RX
 //#define RX 5 // D1 on NodeMCU, microcontroller TX
 
 // For botletics SIM7000 shield
-#define PWRKEY 6
+#define BOTLETICS_PWRKEY 6
 #define RST 7
 //#define DTR 8 // Connect with solder jumper
 //#define RI 9 // Need to enable via AT commands
@@ -65,7 +65,7 @@
 //#define T_ALERT 12 // Connect with solder jumper
 
 // For botletics SIM7500 shield
-//#define PWRKEY 6
+//#define BOTLETICS_PWRKEY 6
 //#define RST 7
 ////#define DTR 9 // Connect with solder jumper
 ////#define RI 8 // Need to enable via AT commands
@@ -114,11 +114,11 @@ void setup() {
   pinMode(RST, OUTPUT);
   digitalWrite(RST, HIGH); // Default state
 
-  pinMode(PWRKEY, OUTPUT);
+  pinMode(BOTLETICS_PWRKEY, OUTPUT);
 
   // Turn on the module by pulsing PWRKEY low for a little bit
   // This amount of time depends on the specific module that's used
-  modem.powerOn(PWRKEY); // Power on the module
+  modem.powerOn(BOTLETICS_PWRKEY); // Power on the module
 
   Serial.begin(9600);
   Serial.println(F("Modem basic test"));
@@ -299,8 +299,10 @@ void printMenu(void) {
 #endif
   // The following option below posts dummy data to dweet.io for demonstration purposes. See the
   // IoT_example sketch for an actual application of this function!
-  Serial.println(F("[2] Post to dweet.io - 2G / LTE CAT-M / NB-IoT")); // SIM800/808/900/7000/7070
-  Serial.println(F("[3] Post to dweet.io - 3G / 4G LTE")); // SIM5320/7500/7600
+  // NOTE: dweet.io shut down in early 2025 and is no longer used as an example
+  // To use the Adafruit IO example, please go to the code and input your own Adafruit IO username, key, and feed key
+  Serial.println(F("[2] Post to Adafruit IO - 2G / LTE CAT-M / NB-IoT")); // SIM800/808/900/7000/7070
+  Serial.println(F("[3] Post to Adafruit IO - 3G / 4G LTE")); // SIM5320/7500/7600
 
   // GPS
   if (type >= SIM808_V1) {
@@ -1023,8 +1025,8 @@ void loop() {
         // Format the floating point numbers as needed
         dtostrf(temperature, 1, 2, tempBuff); // float_val, min_width, digits_after_decimal, char_buffer
 
-        #ifdef SIMCOM_7070 // Use this line if you have the SIM7000G because the 1529B01SIM7000G firmware doesn't seem to run the commands below well
-        // #if defined(SIMCOM_7000) || defined(SIMCOM_7070) // Use this if you have SIM7000A, especially with SSL
+        // #ifdef SIMCOM_7070 // Use this line if you have the SIM7000G because the 1529B01SIM7000G firmware doesn't seem to run the commands below well
+        #if defined(SIMCOM_7000) || defined(SIMCOM_7070) // Use this if you have SIM7000A, especially with SSL
             // Add headers as needed
             // modem.HTTP_addHeader("User-Agent", "SIM7070", 7);
             // modem.HTTP_addHeader("Cache-control", "no-cache", 8);
@@ -1033,54 +1035,57 @@ void loop() {
             
             // Connect to server
             // If https:// is used, #define BOTLETICS_SSL 1 in Botletics_modem.h
-            if (! modem.HTTP_connect("http://dweet.io")) {
+            if (! modem.HTTP_connect("http://io.adafruit.com")) {
               Serial.println(F("Failed to connect to server..."));
               break;
             }
 
-            // GET request
-            // Format URI with GET request query string
-            sprintf(URL, "/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel);
-            modem.HTTP_GET(URL);
+            // POST request (to create data on the feed)
+            // Insert your AIO username and feed key: "/api/v2/{username}/feeds/{feed_key}/data"
+            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
 
-            // POST request
-            /*
-            sprintf(URL, "/dweet/for/%s", imei); // Format URI
-
-            // Format JSON body for POST request
-            // Example JSON body: "{\"temp\":\"22.3\",\"batt\":\"3800\"}"
-//            sprintf(body, "{\"temp\":\"%s\",\"batt\":\"%i\"}", tempBuff, battLevel); // construct JSON body
-
-//            modem.HTTP_addHeader("Content-Type", "application/json", 16);
-            modem.HTTP_addPara("temp", "23.4", 5); // Test value
-            modem.HTTP_addPara("batt", "4120", 5); // Test value
+            modem.HTTP_addHeader("x-aio-key", "450a3ef9db96445dac2ffe22893c4939", 33); // Adafruit IO authentication key
+            modem.HTTP_addHeader("Content-Type", "application/x-www-form-urlencoded", 34);
+            modem.HTTP_addPara("value", tempBuff, strlen(tempBuff)); // Test value
             modem.HTTP_POST(URL, body, strlen(body));
-            */
+                        
+            // GET request (to get the last data point that was posted)
+            /*
+            // Format URI with GET request query string
+            // Format: "/api/v2/{username}/feeds/{feed_key}/data/last"
+            strcpy(URL, "/api/v2/username/feeds/sim7000/data/last"); // Get only the last data point
+            modem.HTTP_addHeader("x-aio-key", "450a3ef9db96445dac2ffe22893c4939", 33); // Adafruit IO authentication key
+            modem.HTTP_GET(URL); // Read the last data point from your feed on Adafruit IO
+            */            
 
         #else
             // Construct the appropriate URL's and body, depending on request type
             // Use IMEI as device ID for this example
             
             // GET request
-            sprintf(URL, "dweet.io/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel); // No need to specify http:// or https://
-    //        sprintf(URL, "http://dweet.io/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel); // But this works too
+            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
+            modem.HTTP_para("x-aio-key", "450a3ef9db96445dac2ffe22893c4939");
 
             if (!modem.postData("GET", URL))
               Serial.println(F("Failed to complete HTTP GET..."));
             
+            
             // POST request
             /*
-            sprintf(URL, "http://dweet.io/dweet/for/%s", imei);
-            sprintf(body, "{\"temp\":%s,\"batt\":%i}", tempBuff, battLevel);
+            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
+            sprintf(body, "{\"value\":\"%s\"}", tempBuff);
+
+            modem.HTTP_para(F("x-aio-key"), F("450a3ef9db96445dac2ffe22893c4939"));
+            modem.HTTP_para(F("Content-Type"), F("application/x-www-form-urlencoded"));
             
-            if (!modem.postData("POST", URL, body)) // Can also add authorization token parameter!
+            if (!modem.postData("POST", URL, body))
               Serial.println(F("Failed to complete HTTP POST..."));
             */
           
         #endif
 
         break;
-      }
+    }
 #endif
 
 #if defined(SIMCOM_3G) || defined(SIMCOM_7500) || defined(SIMCOM_7600)
