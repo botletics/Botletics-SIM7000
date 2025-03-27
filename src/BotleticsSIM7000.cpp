@@ -841,7 +841,8 @@ boolean Botletics_modem::sendSMS(const char *smsaddr, const char *smsmsg) {
 
   // DEBUG_PRINTLN("^Z");
 
-  if ( (_type == SIM5320A) || (_type == SIM5320E) || (_type >= SIM7000) ) {
+  // if ( (_type == SIM5320A) || (_type == SIM5320E) || (_type >= SIM7000) ) {
+  if ( (_type == SIM5320A) || (_type == SIM5320E) ) {
     // Eat two sets of CRLF
     readline(200);
     //DEBUG_PRINT("Line 1: "); DEBUG_PRINTLN(strlen(replybuffer));
@@ -1968,7 +1969,7 @@ boolean Botletics_modem::wirelessConnStatus(void) {
   return true;
 }
 
-boolean Botletics_modem::postData(const char *request_type, const char *URL, const char *body, const char *token, uint32_t bodylen) {
+boolean Botletics_modem::postData(const char *request_type, const char *URL, const char *body, const char *token, uint32_t bodylen, char *reply = "") {
   // NOTE: Need to open socket/enable GPRS before using this function
   // char auxStr[64];
 
@@ -2050,6 +2051,7 @@ boolean Botletics_modem::postData(const char *request_type, const char *URL, con
   getReply(F("AT+HTTPREAD"));
 
   readline(10000);
+  strncpy(reply, replybuffer, sizeof(reply));
   DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // Print out server reply
 
   // Terminate HTTP service
@@ -2322,6 +2324,7 @@ boolean Botletics_modem_LTE::HTTP_POST(const char *URI, const char *body, uint8_
 
   // Read server response
   getReply(F("AT+SHREAD=0,"), datalen, 10000);
+  readline();
   readline();
   DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // +SHREAD: <datalen>
   readline(10000);
