@@ -102,10 +102,12 @@ boolean Botletics_modem::begin(Stream &port) {
 
 
   // DEBUG_PRINT(F("\t---> ")); DEBUG_PRINTLN("ATI");
-  DEBUG_PRINT(F("\t---> ")); DEBUG_PRINTLN("AT+GMR"); // This definitely should have the module name, but ATI may not
+  // DEBUG_PRINT(F("\t---> ")); DEBUG_PRINTLN("AT+GMR");
+  DEBUG_PRINT(F("\t---> ")); DEBUG_PRINTLN("AT+SIMCOMATI"); // More detailed and robust. Makes sure module name is there
 
   // mySerial->println("ATI");
-  mySerial->println("AT+GMR");
+  // mySerial->println("AT+GMR");
+  mySerial->println("AT+SIMCOMATI");
   readline(500, true);
 
   DEBUG_PRINT (F("\t<--- ")); DEBUG_PRINTLN(replybuffer);
