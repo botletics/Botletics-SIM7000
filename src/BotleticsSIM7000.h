@@ -104,7 +104,7 @@
 #define SIM_PIN2 5
 #define SIM_PUK2 6
 
-#define BOTLETICS_SSL 1
+#define BOTLETICS_SSL 0
 
 class Botletics_modem : public BotleticsStreamType {
  public:
