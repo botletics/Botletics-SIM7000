@@ -1034,8 +1034,8 @@ void loop() {
             // modem.HTTP_addHeader("Accept", "*/*, 3);
             
             // Connect to server
-            // By default: #define BOTLETICS_SSL 1 in Botletics_modem.h
-            if (! modem.HTTP_connect("https://io.adafruit.com")) {
+            // For SSL, #define BOTLETICS_SSL 1 in Botletics_modem.h
+            if (! modem.HTTP_connect("http://io.adafruit.com")) {
               Serial.println(F("Failed to connect to server..."));
               break;
             }
