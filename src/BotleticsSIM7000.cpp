@@ -2824,7 +2824,7 @@ boolean Botletics_modem::MQTTdisconnect(void) {
   return false;
 }
 
-/********* SIM7000 MQTT FUNCTIONS  ************************************/
+/********* SIM7000 MQTT(S) FUNCTIONS  ************************************/
 // Set MQTT parameters
 // Parameter tags can be "CLIENTID", "URL", "KEEPTIME", "CLEANSS", "USERNAME",
 // "PASSWORD", "QOS", "TOPIC", "MESSAGE", or "RETAIN"
@@ -2832,7 +2832,7 @@ boolean Botletics_modem_LTE::MQTT_setParameter(const char* paramTag, const char*
   char cmdStr[255];
 
   if (port == 0) sprintf(cmdStr, "AT+SMCONF=\"%s\",\"%s\"", paramTag, paramValue); // Quoted paramValue
-  else sprintf(cmdStr, "AT+SMCONF=\"%s\",\"%s\",%i", paramTag, paramValue, port);
+  else sprintf(cmdStr, "AT+SMCONF=\"%s\",\"%s\",\"%i\"", paramTag, paramValue, port);
   if (! sendCheckReply(cmdStr, ok_reply)) return false;
 
   // if (strcmp(paramTag, "CLIENTID") == 0 || strcmp(paramTag, "URL") == 0 || strcmp(paramTag, "TOPIC") == 0 || strcmp(paramTag, "MESSAGE") == 0) {
@@ -2850,6 +2850,13 @@ boolean Botletics_modem_LTE::MQTT_setParameter(const char* paramTag, const char*
 
 // Connect or disconnect MQTT
 boolean Botletics_modem_LTE::MQTT_connect(bool yesno) {
+  if (BOTLETICS_SSL) {
+    sendCheckReply(F("AT+CSSLCFG=\"sslversion\",0,3"), ok_reply); // Set to TLS 1.2
+    // sendCheckReply(F("AT+CSSLCFG=\"authmode\",0,0"), ok_reply); // Set authentication mode to None (No verification)
+    // sendCheckReply(F("AT+CSSLCFG=\"sni\",0,\"io.adafruit.com\""), ok_reply); // Skip certificate expiration checks
+    sendCheckReply(F("AT+CSSLCFG=\"ignorertctime\",0,1"), ok_reply); // Skip certificate expiration checks
+    sendCheckReply(F("AT+SMSSL=1,\"\",\"\""), ok_reply); // Enable SSL without certificates
+  }
   if (yesno) return sendCheckReply(F("AT+SMCONN"), ok_reply, 5000);
   else return sendCheckReply(F("AT+SMDISC"), ok_reply);
 }
