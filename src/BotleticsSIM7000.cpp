@@ -2210,14 +2210,17 @@ boolean Botletics_modem_LTE::HTTP_connect(const char *server) {
   sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
 
   if (BOTLETICS_SSL) {
-    sendCheckReply(F("AT+CSSLCFG=\"sslversion\",1,3"), ok_reply);
-    sendCheckReply(F("AT+SHSSL=1,\"\""), ok_reply, 10000);
+    sendCheckReply(F("AT+CSSLCFG=\"sslversion\",0,3"), ok_reply);
   }
 
   sprintf(urlBuff, "AT+SHCONF=\"URL\",\"%s\"", server);
 
   if (! sendCheckReply(urlBuff, ok_reply, 10000))
     return false;
+
+  if (BOTLETICS_SSL) {
+    sendCheckReply(F("AT+SHSSL=1,\"\""), ok_reply, 10000); // Use SSL but trust all certificates
+  }
 
   // Set max HTTP body length
   sendCheckReply(F("AT+SHCONF=\"BODYLEN\",1024"), ok_reply, 10000); // Max 1024 for SIM7070G
