@@ -1072,7 +1072,7 @@ void loop() {
             
             // GET request
             strcpy(URL, "/api/v2/username/feeds/sim7000/data");
-            modem.HTTP_para("x-aio-key", "450a3ef9db96445dac2ffe22893c4939");
+            modem.HTTP_para(F("x-aio-key"), F("450a3ef9db96445dac2ffe22893c4939"));
 
             if (!modem.postData("GET", URL))
               Serial.println(F("Failed to complete HTTP GET..."));
