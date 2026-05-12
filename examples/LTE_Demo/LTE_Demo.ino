@@ -1031,32 +1031,58 @@ void loop() {
             // modem.HTTP_addHeader("Cache-control", "no-cache", 8);
             // modem.HTTP_addHeader("Connection", "keep-alive", 10);
             // modem.HTTP_addHeader("Accept", "*/*", 3);
-            
-            // Connect to server
-            // For SSL, #define BOTLETICS_SSL 1 in Botletics_modem.h
-            if (! modem.HTTP_connect("http://io.adafruit.com")) {
+
+            // ---------- DWEET.CC EXAMPLE ---------- //
+
+            // Connect to server (keep this for both dweet.cc examples below)
+            if (! modem.HTTP_connect("https://dweet.cc")) {
               Serial.println(F("Failed to connect to server..."));
               break;
             }
 
-            // POST request (to create data on the feed)
-            // Insert your AIO username and feed key: "/api/v2/{username}/feeds/{feed_key}/data"
-            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
+            // ---------- DWEET.CC HTTPS GET ---------- //
+            sprintf(URL, "/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel);
+            modem.HTTP_GET(URL);
 
-            modem.HTTP_addHeader("x-aio-key", "aio_BKsh03hpOIqqwXgKbhDay3Zs4byy", 33); // Adafruit IO authentication key
-            modem.HTTP_addHeader("Content-Type", "application/x-www-form-urlencoded", 34);
-            modem.HTTP_addPara("value", tempBuff, strlen(tempBuff)); // Test value
-            modem.HTTP_POST(URL, body, strlen(body));
-                        
-            // GET request (to get the last data point that was posted)
+            // ---------- DWEET.CC HTTPS POST ---------- //
+            // sprintf(URL, "/dweet/for/%s", imei);
+            // sprintf(body, "{\"temp\":\"%s\",\"batt\":\"%i\"}", tempBuff, battLevel);
+            // modem.HTTP_POST(URL, body, strlen(body));
+
+            // ---------- ADAFRUIT IO EXAMPLE ---------- //
             /*
+            // Adafruit IO credentials
+            #define AIO_username "username"
+            #define AIO_feed     "sim7000"
+            #define AIO_key      "450a3ef9db96445dac2ffe22893c4939"
+
+            // Connect to server (keep this for both Adafruit IO examples below)
+            if (! modem.HTTP_connect("https://io.adafruit.com")) {
+              Serial.println(F("Failed to connect to server..."));
+              break;
+            }
+            */
+
+            // ---------- ADAFRUIT IO HTTP(S) GET ---------- //
+            // Get the last data point that was posted
             // Format URI with GET request query string
             // Format: "/api/v2/{username}/feeds/{feed_key}/data/last"
-            strcpy(URL, "/api/v2/username/feeds/sim7000/data/last"); // Get only the last data point
-            modem.HTTP_addHeader("x-aio-key", "450a3ef9db96445dac2ffe22893c4939", 33); // Adafruit IO authentication key
-            modem.HTTP_GET(URL); // Read the last data point from your feed on Adafruit IO
-            */            
+            /*
+            // sprintf(URL, "/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
+            // modem.HTTP_addHeader("x-aio-key", AIO_key, strlen(AIO_key));
+            // modem.HTTP_GET(URL); // Read the last data point from your feed on Adafruit IO
+            */
 
+            // ---------- ADAFRUIT IO HTTP(S) POST ---------- //
+            // Post new data
+            // Insert your AIO username and feed key: "/api/v2/{username}/feeds/{feed_key}/data"
+            /*
+            sprintf(URL, "/api/v2/%s/feeds/%s/data", AIO_username, AIO_feed);
+            modem.HTTP_addHeader("x-aio-key", AIO_key, strlen(AIO_key));
+            modem.HTTP_addHeader("Content-Type", "application/x-www-form-urlencoded", 34);
+            modem.HTTP_addPara("value", tempBuff, strlen(tempBuff));
+            modem.HTTP_POST(URL, body, strlen(body));
+            */
         #else
             // Construct the appropriate URL's and body, depending on request type
             // Use IMEI as device ID for this example
