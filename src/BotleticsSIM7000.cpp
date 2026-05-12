@@ -1936,7 +1936,7 @@ boolean Botletics_modem::openWirelessConnection(bool onoff) {
     DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer);
 
     if (_type == SIM7070 && strstr(replybuffer, ",DEACTIVE") == NULL) return false; // +APP PDP: <pdpidx>,DEACTIVE
-    else if (_type == SIM7000 && strstr(replybuffer, "PDP: DEACTIVE") == NULL) return false; // +APP PDP: DEACTIVE
+    else if (_type == SIM7000 && strstr(replybuffer, " DEACTIVE") == NULL) return false; // +APP PDP: DEACTIVE
   }
   else {
     if (_type == SIM7070) {
@@ -1950,7 +1950,7 @@ boolean Botletics_modem::openWirelessConnection(bool onoff) {
     DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer);
 
     if (_type == SIM7070 && strstr(replybuffer, ",ACTIVE") == NULL) return false; // +APP PDP: <pdpidx>,ACTIVE
-    else if (_type == SIM7000 && strstr(replybuffer, "PDP: ACTIVE") == NULL) return false; // +APP PDP: ACTIVE
+    else if (_type == SIM7000 && strstr(replybuffer, " ACTIVE") == NULL) return false; // +APP PDP: ACTIVE
   }
 
   return true;
