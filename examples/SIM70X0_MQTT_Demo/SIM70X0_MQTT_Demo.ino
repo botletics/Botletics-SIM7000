@@ -1,15 +1,13 @@
 /*  This example sketch is for the Botletics SIM7000/7070 shield and Arduino
  *  to collect GPS, temperature, and battery data and send those values via MQTT
  *  to just about any MQTT broker.
- *  
- *  NOTE: MQTTS development is in progress
- *  
+ *    
  *  Just make sure to replace credentials with your own, and change the names of the
  *  topics you want to publish or subscribe to.
  *  
  *  Author: Timothy Woo (www.botletics.com)
  *  Github: https://github.com/botletics/SIM7000-LTE-Shield
- *  Last Updated: 7/4/2022
+ *  Last Updated: 5/12/2026
  *  License: GNU GPL v3.0
  */
 
@@ -55,12 +53,13 @@ SoftwareSerial *modemSerial = &modemSS;
 Botletics_modem_LTE modem = Botletics_modem_LTE();
 
 /************************* MQTT PARAMETERS *********************************/
-#define MQTT_SERVER      "m10.cloudmqtt.com"
-#define MQTT_PORT        16644
-#define MQTT_USERNAME    "MQTT_USERNAME"
-#define MQTT_PASSWORD    "MQTT_PASSWORD"
+#define MQTT_SERVER      "io.adafruit.com"
+#define MQTT_PORT        1883 // 8883 for SSL
+#define MQTT_USERNAME    "USERNAME"
+#define MQTT_PASSWORD    "PASSWORD"
 
 // Set topic names to publish and subscribe to
+// NOTE: For Adafruit IO, the feed name format is: "{username}/feeds/{feed_name}"
 #define GPS_TOPIC       "location"
 #define TEMP_TOPIC      "temperature"
 #define BATT_TOPIC      "battery"
@@ -163,6 +162,12 @@ void setup() {
 
   // Perform first-time GPS/data setup if the shield is going to remain on,
   // otherwise these won't be enabled in loop() and it won't work!
+  // Disable data then enable to start with clean connection
+  modem.enableGPRS(false);
+  delay(1000);
+  modem.enableGPRS(true);
+  delay(1000);
+
   // Enable GPS
   while (!modem.enableGPS(true)) {
     Serial.println(F("Failed to turn on GPS, retrying..."));
@@ -186,7 +191,7 @@ void loop() {
   
     // Open wireless connection if not already activated
     if (!modem.wirelessConnStatus()) {
-      while (!modem.openWirelessConnection(true)) {
+      while (!modem.enableGPRS(true)) {
         Serial.println(F("Failed to enable connection, retrying..."));
         delay(2000); // Retry every 2s
       }
@@ -262,9 +267,10 @@ void loop() {
       // Set up MQTT parameters (see MQTT app note for explanation of parameter values)
       modem.MQTT_setParameter("URL", MQTT_SERVER, MQTT_PORT);
       // Set up MQTT username and password if necessary
+      // modem.MQTT_setParameter("CLIENTID", imei);
       modem.MQTT_setParameter("USERNAME", MQTT_USERNAME);
       modem.MQTT_setParameter("PASSWORD", MQTT_PASSWORD);
-  //    modem.MQTTsetParameter("KEEPTIME", 30); // Time to connect to server, 60s by default
+      modem.MQTT_setParameter("KEEPTIME", "60"); // Time to connect to server, 60s by default
       
       Serial.println(F("Connecting to MQTT broker..."));
       if (! modem.MQTT_connect(true)) {
@@ -277,12 +283,22 @@ void loop() {
   
     // Now publish all the GPS and temperature data to their respective topics!
     // Parameters for MQTT_publish: Topic, message (0-512 bytes), message length, QoS (0-2), retain (0-1)
-    if (!modem.MQTT_publish(GPS_TOPIC, locBuff, strlen(locBuff), 1, 0)) Serial.println(F("Failed to publish!")); // Send GPS location
-    if (!modem.MQTT_publish(TEMP_TOPIC, tempBuff, strlen(tempBuff), 1, 0)) Serial.println(F("Failed to publish!")); // Send temperature
-    if (!modem.MQTT_publish(BATT_TOPIC, battBuff, strlen(battBuff), 1, 0)) Serial.println(F("Failed to publish!")); // Send battery level
+    char GPS_feed[80];
+    char TEMP_feed[80];
+    char BATT_feed[80];
+    char SUB_feed[80];
+
+    sprintf(GPS_feed, "%s/feeds/%s", MQTT_USERNAME, GPS_TOPIC);
+    sprintf(TEMP_feed, "%s/feeds/%s", MQTT_USERNAME, TEMP_TOPIC);
+    sprintf(BATT_feed, "%s/feeds/%s", MQTT_USERNAME, BATT_TOPIC);
+    sprintf(SUB_feed, "%s/feeds/%s", MQTT_USERNAME, SUB_TOPIC);
+
+    if (!modem.MQTT_publish(GPS_feed, locBuff, strlen(locBuff), 1, 0)) Serial.println(F("Failed to publish!")); // Send GPS location
+    if (!modem.MQTT_publish(TEMP_feed, tempBuff, strlen(tempBuff), 1, 0)) Serial.println(F("Failed to publish!")); // Send temperature
+    if (!modem.MQTT_publish(BATT_feed, battBuff, strlen(battBuff), 1, 0)) Serial.println(F("Failed to publish!")); // Send battery level
   
     // Note the command below may error out if you're already subscribed to the topic!
-    modem.MQTT_subscribe(SUB_TOPIC, 1); // Topic name, QoS
+    modem.MQTT_subscribe(SUB_feed, 1); // Topic name, QoS
     
     // Unsubscribe from topics if wanted:
   //  modem.MQTT_unsubscribe(SUB_TOPIC);
