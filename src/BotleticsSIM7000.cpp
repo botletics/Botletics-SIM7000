@@ -1613,11 +1613,60 @@ boolean Botletics_modem::enableGPRS(boolean onoff) {
     if (! openWirelessConnection(onoff)) return false;
     // if (! wirelessConnStatus()) return false;
   }
+  else if (_type == SIM7000) {
+    if (onoff) {
+      if (! sendCheckReply(F("AT+CGATT=1"), ok_reply, 10000))
+        return false;
+
+      // set bearer profile! connection type GPRS
+      if (! sendCheckReply(F("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\""), ok_reply, 10000))
+        return false;
+
+      delay(200); // This seems to help the next line run the first time
+
+      // set bearer profile access point name
+      if (apn) {
+        // Send command AT+SAPBR=3,1,"APN","<apn value>" where <apn value> is the configured APN value.
+        if (! sendCheckReplyQuoted(F("AT+SAPBR=3,1,\"APN\","), apn, ok_reply, 10000))
+          return false;
+
+        // set username/password
+        if (apnusername) {
+          // Send command AT+SAPBR=3,1,"USER","<user>" where <user> is the configured APN username.
+          if (! sendCheckReplyQuoted(F("AT+SAPBR=3,1,\"USER\","), apnusername, ok_reply, 10000))
+            return false;
+        }
+        if (apnpassword) {
+          // Send command AT+SAPBR=3,1,"PWD","<password>" where <password> is the configured APN password.
+          if (! sendCheckReplyQuoted(F("AT+SAPBR=3,1,\"PWD\","), apnpassword, ok_reply, 10000))
+            return false;
+        }
+      }
+
+      // open bearer
+      if (! sendCheckReply(F("AT+SAPBR=1,1"), ok_reply, 30000))
+        return false;
+
+      openWirelessConnection(true);
+      // if (! wirelessConnStatus()) return false;
+
+    } else {
+      // disconnect all sockets
+      if (! sendCheckReply(F("AT+CIPSHUT"), F("SHUT OK"), 20000))
+        return false;
+
+      // close bearer
+      if (! sendCheckReply(F("AT+SAPBR=0,1"), ok_reply, 10000))
+        return false;
+
+      if (!sendCheckReply(F("AT+CGATT=0"), F("+APP PDP: DEACTIVE")))
+          return false;
+
+      readline(); // Eat OK
+    }
+  }
   else {
     if (onoff) {
-      // disconnect all sockets
-      sendCheckReply(F("AT+CIPSHUT"), F("SHUT OK"), 20000);
-
       if (! sendCheckReply(F("AT+CGATT=1"), ok_reply, 10000))
         return false;
 
@@ -1696,12 +1745,23 @@ boolean Botletics_modem::enableGPRS(boolean onoff) {
       if (! sendCheckReply(F("AT+SAPBR=0,1"), ok_reply, 10000))
         return false;
 
-      if (! sendCheckReply(F("AT+CGATT=0"), ok_reply, 10000))
-        return false;
+      if (!sendCheckReply(F("AT+CGATT=0"), F("+APP PDP: DEACTIVE")))
+          return false;
 
-      openWirelessConnection(false);
+      readline(); // Eat OK
     }
   }
+
+  if (onoff) {
+    // Enable time sync
+    sendCheckReply(F("AT+CNTP=\"pool.ntp.org\",0"), ok_reply, 10000);
+    sendCheckReply(F("AT+CNTP"), ok_reply, 10000);
+    getReply(F("AT+CCLK?"), (uint16_t) 10000); // Check clock
+    readline(); // Eat OK
+    readline();
+    DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer);
+  }
+
   return true;
 }
 
@@ -2208,9 +2268,10 @@ boolean Botletics_modem_LTE::HTTP_connect(const char *server) {
   char urlBuff[100];
 
   sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
+  sendCheckReply(F("AT+SHCHEAD"), ok_reply, 10000); // Clear headers
 
   if (BOTLETICS_SSL) {
-    sendCheckReply(F("AT+CSSLCFG=\"sslversion\",0,3"), ok_reply);
+    sendCheckReply(F("AT+CSSLCFG=\"sslversion\",1,3"), ok_reply);
   }
 
   sprintf(urlBuff, "AT+SHCONF=\"URL\",\"%s\"", server);
