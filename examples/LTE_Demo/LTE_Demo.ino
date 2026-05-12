@@ -1068,9 +1068,9 @@ void loop() {
             // Format URI with GET request query string
             // Format: "/api/v2/{username}/feeds/{feed_key}/data/last"
             /*
-            // sprintf(URL, "/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
-            // modem.HTTP_addHeader("x-aio-key", AIO_key, strlen(AIO_key));
-            // modem.HTTP_GET(URL); // Read the last data point from your feed on Adafruit IO
+            sprintf(URL, "/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
+            modem.HTTP_addHeader("x-aio-key", AIO_key, strlen(AIO_key));
+            modem.HTTP_GET(URL); // Read the last data point from your feed on Adafruit IO
             */
 
             // ---------- ADAFRUIT IO HTTP(S) POST ---------- //
