@@ -1756,10 +1756,11 @@ boolean Botletics_modem::enableGPRS(boolean onoff) {
     // Enable time sync
     sendCheckReply(F("AT+CNTP=\"pool.ntp.org\",0"), ok_reply, 10000);
     sendCheckReply(F("AT+CNTP"), ok_reply, 10000);
-    getReply(F("AT+CCLK?"), (uint16_t) 10000); // Check clock
-    readline(); // Eat OK
-    readline();
-    DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer);
+    readline(10000);
+    DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // +CNTP: 1,"2026/05/12,19:16:06"
+    sendCheckReply(F("AT+CCLK?"), ok_reply, 10000); // Check clock
+    readline(5000);
+    DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // +CCLK: "26/05/12,19:19:47+00"
   }
 
   return true;
