@@ -893,31 +893,23 @@ void loop() {
         break;
       }
 
-    /*********************************** GPRS */
+    /*********************************** Data */
 
     case 'g': {
-        #if defined(SIMCOM_7000)
-          if (!modem.openWirelessConnection(false))
-            Serial.println(F("Failed to turn off"));
-        #else
-          if (!modem.enableGPRS(false))
-              Serial.println(F("Failed to turn off"));
-        #endif
-
+        // disable data
+        if (!modem.enableGPRS(false))
+          Serial.println(F("Failed to turn off"));
         break;
       }
     case 'G': {
         // turn GPRS off first for SIM7500
-        #if defined(SIMCOM_7500) || defined(SIMCOM_7600)
+        #if defined(SIMCOM_7500) || defined (SIMCOM_7600)
           modem.enableGPRS(false);
-        #elif defined(SIMCOM_7000)
-          if (!modem.openWirelessConnection(true))
-            Serial.println(F("Failed to turn on"));
-        #else
-          if (!modem.enableGPRS(true))
-              Serial.println(F("Failed to turn on"));
         #endif
 
+        // enable data
+        if (!modem.enableGPRS(true))
+            Serial.println(F("Failed to turn on"));
         break;
       }
     case 'l': {
@@ -1033,13 +1025,12 @@ void loop() {
         // Format the floating point numbers as needed
         dtostrf(temperature, 1, 2, tempBuff); // float_val, min_width, digits_after_decimal, char_buffer
 
-        // #ifdef SIMCOM_7070 // Use this line if you have the SIM7000G because the 1529B01SIM7000G firmware doesn't seem to run the commands below well
-        #if defined(SIMCOM_7000) || defined(SIMCOM_7070) // Use this if you have SIM7000A, especially with SSL
+        #if defined(SIMCOM_7000) || defined(SIMCOM_7070)
             // Add headers as needed
-            // modem.HTTP_addHeader("User-Agent", "SIM7070", 7);
+            // modem.HTTP_addHeader("User-Agent", "SIM7000", 7);
             // modem.HTTP_addHeader("Cache-control", "no-cache", 8);
             // modem.HTTP_addHeader("Connection", "keep-alive", 10);
-            // modem.HTTP_addHeader("Accept", "*/*, 3);
+            // modem.HTTP_addHeader("Accept", "*/*", 3);
             
             // Connect to server
             // For SSL, #define BOTLETICS_SSL 1 in Botletics_modem.h
@@ -1052,7 +1043,7 @@ void loop() {
             // Insert your AIO username and feed key: "/api/v2/{username}/feeds/{feed_key}/data"
             strcpy(URL, "/api/v2/username/feeds/sim7000/data");
 
-            modem.HTTP_addHeader("x-aio-key", "450a3ef9db96445dac2ffe22893c4939", 33); // Adafruit IO authentication key
+            modem.HTTP_addHeader("x-aio-key", "aio_BKsh03hpOIqqwXgKbhDay3Zs4byy", 33); // Adafruit IO authentication key
             modem.HTTP_addHeader("Content-Type", "application/x-www-form-urlencoded", 34);
             modem.HTTP_addPara("value", tempBuff, strlen(tempBuff)); // Test value
             modem.HTTP_POST(URL, body, strlen(body));
