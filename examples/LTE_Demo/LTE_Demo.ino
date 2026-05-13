@@ -1043,8 +1043,7 @@ void loop() {
             if (! modem.HTTP_connect("https://io.adafruit.com")) {
               Serial.println(F("Failed to connect to server..."));
               break;
-            }
-            
+            }            
 
             // ---------- ADAFRUIT IO HTTP(S) GET ---------- //
             // Get the last data point that was posted
