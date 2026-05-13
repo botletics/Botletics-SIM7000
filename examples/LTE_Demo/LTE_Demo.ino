@@ -9,7 +9,7 @@
 
     Author: Timothy Woo (www.botletics.com)
     Github: https://github.com/botletics/SIM7000-LTE-Shield
-    Last Updated: 5/11/2025
+    Last Updated: 5/12/2025
     License: GNU GPL v3.0
 */
 
@@ -1032,46 +1032,29 @@ void loop() {
             // modem.HTTP_addHeader("Connection", "keep-alive", 10);
             // modem.HTTP_addHeader("Accept", "*/*", 3);
 
-            // ---------- DWEET.CC EXAMPLE ---------- //
-
-            // Connect to server (keep this for both dweet.cc examples below)
-            if (! modem.HTTP_connect("https://dweet.cc")) {
-              Serial.println(F("Failed to connect to server..."));
-              break;
-            }
-
-            // ---------- DWEET.CC HTTPS GET ---------- //
-            sprintf(URL, "/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel);
-            modem.HTTP_GET(URL);
-
-            // ---------- DWEET.CC HTTPS POST ---------- //
-            // sprintf(URL, "/dweet/for/%s", imei);
-            // sprintf(body, "{\"temp\":\"%s\",\"batt\":\"%i\"}", tempBuff, battLevel);
-            // modem.HTTP_POST(URL, body, strlen(body));
-
             // ---------- ADAFRUIT IO EXAMPLE ---------- //
-            /*
+            
             // Adafruit IO credentials
-            #define AIO_username "username"
+            #define AIO_username "AIO_username"
             #define AIO_feed     "sim7000"
-            #define AIO_key      "450a3ef9db96445dac2ffe22893c4939"
+            #define AIO_key      "AIO_key"
 
             // Connect to server (keep this for both Adafruit IO examples below)
             if (! modem.HTTP_connect("https://io.adafruit.com")) {
               Serial.println(F("Failed to connect to server..."));
               break;
             }
-            */
+            
 
             // ---------- ADAFRUIT IO HTTP(S) GET ---------- //
             // Get the last data point that was posted
             // Format URI with GET request query string
             // Format: "/api/v2/{username}/feeds/{feed_key}/data/last"
-            /*
+            
             sprintf(URL, "/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
             modem.HTTP_addHeader("x-aio-key", AIO_key, strlen(AIO_key));
             modem.HTTP_GET(URL); // Read the last data point from your feed on Adafruit IO
-            */
+
 
             // ---------- ADAFRUIT IO HTTP(S) POST ---------- //
             // Post new data
@@ -1083,6 +1066,24 @@ void loop() {
             modem.HTTP_addPara("value", tempBuff, strlen(tempBuff));
             modem.HTTP_POST(URL, body, strlen(body));
             */
+
+            // ---------- DWEET.CC EXAMPLE ---------- //
+            /*
+            // Connect to server (keep this for both dweet.cc examples below)
+            if (! modem.HTTP_connect("https://dweet.cc")) {
+              Serial.println(F("Failed to connect to server..."));
+              break;
+            }
+            */
+
+            // ---------- DWEET.CC HTTPS GET ---------- //
+            // sprintf(URL, "/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel);
+            // modem.HTTP_GET(URL);
+
+            // ---------- DWEET.CC HTTPS POST ---------- //
+            // sprintf(URL, "/dweet/for/%s", imei);
+            // sprintf(body, "{\"temp\":\"%s\",\"batt\":\"%i\"}", tempBuff, battLevel);
+            // modem.HTTP_POST(URL, body, strlen(body));
         #else
             // Construct the appropriate URL's and body, depending on request type
             // Use IMEI as device ID for this example
