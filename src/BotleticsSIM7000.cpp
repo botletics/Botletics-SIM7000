@@ -1651,16 +1651,30 @@ boolean Botletics_modem::enableGPRS(boolean onoff) {
       // if (! wirelessConnStatus()) return false;
 
     } else {
-      // disconnect all sockets
-      if (! sendCheckReply(F("AT+CIPSHUT"), F("SHUT OK"), 20000))
-        return false;
+      // if (! openWirelessConnection(false)) // AT+CNACT=0
+      //   return false;
 
-      // close bearer
-      if (! sendCheckReply(F("AT+SAPBR=0,1"), ok_reply, 10000))
-        return false;
+      // if (! sendCheckReply(F("AT+SHDISC"), ok_reply, 10000))
+      //   return false;
 
-      if (!sendCheckReply(F("AT+CGATT=0"), F("+APP PDP: DEACTIVE")))
-          return false;
+      // if (! sendCheckReply(F("AT+CIPSHUT"), F("SHUT OK"), 20000))
+      //   return false;
+
+      // if (! sendCheckReply(F("AT+HTTPTERM"), ok_reply, 10000))
+      //   return false;
+
+      // if (! sendCheckReply(F("AT+SAPBR=0,1"), ok_reply, 10000))
+      //   return false;
+
+      // if (!sendCheckReply(F("AT+CGATT=0"), F("+APP PDP: DEACTIVE")))
+      //     return false;
+
+      openWirelessConnection(false);
+      sendCheckReply(F("AT+SHDISC"), ok_reply, 10000);
+      sendCheckReply(F("AT+CIPSHUT"), F("SHUT OK"), 20000);
+      // sendCheckReply(F("AT+HTTPTERM"), ok_reply, 10000);
+      sendCheckReply(F("AT+SAPBR=0,1"), ok_reply, 10000);
+      sendCheckReply(F("AT+CGATT=0"), F("+APP PDP: DEACTIVE"));
 
       readline(); // Eat OK
     }
@@ -2267,12 +2281,19 @@ boolean Botletics_modem::postData(const char *server, uint16_t port, const char 
 boolean Botletics_modem_LTE::HTTP_connect(const char *server) {
   // Set up server URL
   char urlBuff[100];
+  char sniBuff[100];
 
   sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
   sendCheckReply(F("AT+SHCHEAD"), ok_reply, 10000); // Clear headers
 
   if (BOTLETICS_SSL) {
-    sendCheckReply(F("AT+CSSLCFG=\"sslversion\",1,3"), ok_reply);
+    sendCheckReply(F("AT+CSSLCFG=\"sslversion\",1,3"), ok_reply); // TLS 1.2
+    sendCheckReply(F("AT+CSSLCFG=\"ignorertctime\",1,1"), ok_reply);
+    // sendCheckReply(F("AT+CSSLCFG=\"ciphersuite\",1,0,0X0035"), ok_reply);
+    // sendCheckReply(F("AT+CSSLCFG=\"ciphersuite\",1,0,0x002F"), ok_reply);
+
+    sprintf(sniBuff, "AT+CSSLCFG=\"sni\",1,\"%s\"", server); // Configure SNI
+    sendCheckReply(sniBuff, ok_reply);
   }
 
   sprintf(urlBuff, "AT+SHCONF=\"URL\",\"%s\"", server);
@@ -2914,9 +2935,7 @@ boolean Botletics_modem_LTE::MQTT_setParameter(const char* paramTag, const char*
 boolean Botletics_modem_LTE::MQTT_connect(bool yesno) {
   if (BOTLETICS_SSL) {
     sendCheckReply(F("AT+CSSLCFG=\"sslversion\",0,3"), ok_reply); // Set to TLS 1.2
-    // sendCheckReply(F("AT+CSSLCFG=\"authmode\",0,0"), ok_reply); // Set authentication mode to None (No verification)
-    // sendCheckReply(F("AT+CSSLCFG=\"sni\",0,\"io.adafruit.com\""), ok_reply); // Skip certificate expiration checks
-    sendCheckReply(F("AT+CSSLCFG=\"ignorertctime\",0,1"), ok_reply); // Skip certificate expiration checks
+    sendCheckReply(F("AT+CSSLCFG=\"ignorertctime\",0,1"), ok_reply);
     sendCheckReply(F("AT+SMSSL=1,\"\",\"\""), ok_reply); // Enable SSL without certificates
   }
   if (yesno) return sendCheckReply(F("AT+SMCONN"), ok_reply, 5000);
