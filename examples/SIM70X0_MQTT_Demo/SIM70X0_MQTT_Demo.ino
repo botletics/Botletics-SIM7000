@@ -1,13 +1,13 @@
 /*  This example sketch is for the Botletics SIM7000/7070 shield and Arduino
- *  to collect GPS, temperature, and battery data and send those values via MQTT
- *  to just about any MQTT broker.
+ *  to publish GPS, temperature, and battery data via MQTT and read subscriptions.
+ *  Default broker used in this example is Adafruit IO.
  *    
  *  Just make sure to replace credentials with your own, and change the names of the
  *  topics you want to publish or subscribe to.
  *  
  *  Author: Timothy Woo (www.botletics.com)
  *  Github: https://github.com/botletics/SIM7000-LTE-Shield
- *  Last Updated: 5/12/2026
+ *  Last Updated: 5/18/2026
  *  License: GNU GPL v3.0
  */
 
@@ -65,8 +65,8 @@ Botletics_modem_LTE modem = Botletics_modem_LTE();
 #define BATT_TOPIC      "battery"
 #define SUB_TOPIC       "command"     // Subscribe topic name
 
-// How many transmission failures in a row we're OK with before reset
-uint8_t txfailures = 0;
+uint8_t txfailures = 0; // How many transmission failures in a row we're OK with before reset
+uint8_t replyidx = 0;
 
 /****************************** OTHER STUFF ***************************************/
 // For temperature sensor
@@ -177,7 +177,52 @@ void setup() {
 }
 
 void loop() {
-  if (firstTime || millis() - timer > samplingRate * 1000UL) {    
+  // --- RUN UNCONDITIONAL CHARACTER HARVESTING (NON-BLOCKING) ---
+  while (modem.available()) {
+    char c = modem.read();
+    
+    // Asynchronously catch characters, filtering out row terminators
+    if (c != '\r' && c != '\n' && replyidx < (sizeof(replybuffer) - 1)) {
+      replybuffer[replyidx++] = c;
+    } 
+    // When a complete line arrives, execute the built-in parser block
+    else if (c == '\n' && replyidx > 0) {
+      replybuffer[replyidx] = '\0'; // Seal the C-string string safely
+      
+      // We got an MQTT message! Parse the topic and message
+      // Format: +SMSUB: "topic_name","message"
+      if (strstr(replybuffer, "+SMSUB:") != NULL) {
+        Serial.println(F("\n*** Received MQTT message! ***"));
+        // Serial.println(replybuffer); // Debug
+        
+        char *p = strtok(replybuffer, ",\"");
+        char *topic_p = strtok(NULL, ",\"");
+        strtok(NULL, "\""); // Skip intermediate comma and quote
+        char *message_p = strtok(NULL, ",\"");
+        
+        Serial.print(F(" Topic: ")); Serial.println(topic_p);
+        Serial.print(F(" Message: ")); Serial.println(message_p);
+
+        // Do something with the message
+        // For example, if the topic was "command" and we received a "yes", turn on an LED!
+        if (strstr(topic_p, "command") != NULL) {
+          if (strcmp(message_p, "yes") == 0) {
+            Serial.println(F("Turning on LED!"));
+            digitalWrite(LED, HIGH);
+          }
+          else if (strcmp(message_p, "no") == 0) {
+            Serial.println(F("Turning off LED!"));
+            digitalWrite(LED, LOW);
+          }
+        }
+      }
+      memset(replybuffer, 0, sizeof(replybuffer));
+      replyidx = 0; // Clear index for the next incoming line chunk
+    }
+  }
+
+  // --- PERIODIC PUBLISH TIMER ---
+  if (firstTime || millis() - timer > samplingRate * 1000UL) {
     // Connect to cell network and verify connection
     // If unsuccessful, keep retrying every 2s until a connection is made
     while (!netStatus()) {
@@ -187,7 +232,7 @@ void loop() {
     Serial.println(F("Connected to cell network!"));
   
     // Disable data just to make sure it was actually off so that we can turn it on
-  //  modem.openWirelessConnection(false);
+    //  modem.openWirelessConnection(false);
   
     // Open wireless connection if not already activated
     if (!modem.wirelessConnStatus()) {
@@ -267,10 +312,10 @@ void loop() {
       // Set up MQTT parameters (see MQTT app note for explanation of parameter values)
       modem.MQTT_setParameter("URL", MQTT_SERVER, MQTT_PORT);
       // Set up MQTT username and password if necessary
-      // modem.MQTT_setParameter("CLIENTID", imei);
+      modem.MQTT_setParameter("CLIENTID", imei); // You need this, otherwise it may not connect
       modem.MQTT_setParameter("USERNAME", MQTT_USERNAME);
       modem.MQTT_setParameter("PASSWORD", MQTT_PASSWORD);
-      modem.MQTT_setParameter("KEEPTIME", "60"); // Time to connect to server, 60s by default
+      // modem.MQTT_setParameter("KEEPTIME", "60"); // Time to connect to server, 60s by default
       
       Serial.println(F("Connecting to MQTT broker..."));
       if (! modem.MQTT_connect(true)) {
@@ -298,10 +343,10 @@ void loop() {
     if (!modem.MQTT_publish(BATT_feed, battBuff, strlen(battBuff), 1, 0)) Serial.println(F("Failed to publish!")); // Send battery level
   
     // Note the command below may error out if you're already subscribed to the topic!
-    modem.MQTT_subscribe(SUB_feed, 1); // Topic name, QoS
+    modem.MQTT_subscribe(SUB_feed, 0); // Topic name, QoS
     
     // Unsubscribe from topics if wanted:
-  //  modem.MQTT_unsubscribe(SUB_TOPIC);
+  //  modem.MQTT_unsubscribe(SUB_feed);
   
     // Enable MQTT data format to hex
   //  modem.MQTT_dataFormatHex(true); // Input "false" to reverse
@@ -314,78 +359,6 @@ void loop() {
 
     firstTime = false;
     timer = millis(); // Reset timer at the end
-  }
-  else {
-    // The rest of the time, read anything coming over via UART from the SIM7000
-    // If it's from an MQTT subscribed topic message, parse it
-    uint8_t i = 0;
-    if (modem.available()) {
-      while (modem.available()) {
-        replybuffer[i] = modem.read();
-        i++;
-      }
-
-      Serial.print(replybuffer); // DEBUG
-      delay(100); // Make sure it prints and also allow other stuff to run properly
-
-      // We got an MQTT message! Parse the topic and message
-      // Format: +SMSUB: "topic_name","message"
-      if (strstr(replybuffer, "+SMSUB:") != NULL) {
-        Serial.println(F("*** Received MQTT message! ***"));
-        
-        char *p = strtok(replybuffer, ",\"");
-        char *topic_p = strtok(NULL, ",\"");
-        char *message_p = strtok(NULL, ",\"");
-        
-        Serial.print(F("Topic: ")); Serial.println(topic_p);
-        Serial.print(F("Message: ")); Serial.println(message_p);
-  
-        // Do something with the message
-        // For example, if the topic was "command" and we received a "yes", turn on an LED!
-        if (strcmp(topic_p, "command") == 0) {
-          if (strcmp(message_p, "yes") == 0) {
-            Serial.println(F("Turning on LED!"));
-            digitalWrite(LED, HIGH);
-          }
-          else if (strcmp(message_p, "no") == 0) {
-            Serial.println(F("Turning off LED!"));
-            digitalWrite(LED, HIGH);
-          }
-        }
-      }
-
-      /*
-      // Alternatively, could convert to String class and parse that way
-      // Format: +SMSUB: "topic_name","message"
-      String reply = String(replybuffer);
-      Serial.println(reply);
-      
-      if (reply.indexOf("+SMSUB: ") != -1) {
-        Serial.println(F("*** Received MQTT message! ***"));
-        // Chop off the "SMSUB: " part plus the beginning quote
-        // After this, reply should be: "topic_name","message"
-        reply = reply.substring(9);
-        uint8_t idx = reply.indexOf("\",\""); // Search for second quote
-        String topic = reply.substring(1, idx); // Grab only the text (without quotes)
-        String message = reply.substring(idx+3, reply.length()-3);
-        
-        Serial.print(F("Topic: ")); Serial.println(topic);
-        Serial.print(F("Message: ")); Serial.println(message);
-        // Do something with the message
-        // For example, if the topic was "command" and we received a "yes", turn on an LED!
-        if (topic == "command") {
-          if (message == "yes") {
-            Serial.println(F("Turning on LED!"));
-            digitalWrite(LED, HIGH);
-          }
-          else if (message == "no") {
-            Serial.println(F("Turning off LED!"));
-            digitalWrite(LED, HIGH);
-          }
-        }
-      }
-      */
-    }
   }
 }
 
