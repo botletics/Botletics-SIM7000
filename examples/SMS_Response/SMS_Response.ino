@@ -1,11 +1,14 @@
-/*  This is an example sketch that receives text messages from the user
- *   and sends a response back dto the user depending on what the
- *   message was! You can use this code for all sorts of cool applications
- *   like remote sensors, SMS-activated controls, and many other things!
+/*  This is an example sketch that receives text messages from a number
+ *  and sends a response back to that same number depending on what the
+ *  message was! You can use this code for all sorts of cool applications
+ *  like remote sensors, SMS-activated controls, and many other things!
+ *  NOTE: Works great with sending SMS to/from Hologram.io dashboard
+ *  
+ *  Tutorial: https://github.com/botletics/SIM7000-LTE-Shield/wiki/SMS-Messages
  *  
  *  Author: Timothy Woo (www.botletics.com)
- *  Github: https://github.com/botletics/NB-IoT-Shield
- *  Last Updated: 1/7/2021
+ *  Github: https://github.com/botletics/Botletics-SIM7000
+ *  Last Updated: 5/18/2026
  *  License: GNU GPL v3.0
  */
 
