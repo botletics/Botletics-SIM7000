@@ -4,6 +4,9 @@
  *    
  *  Just make sure to replace credentials with your own, and change the names of the
  *  topics you want to publish or subscribe to.
+ *  In this example, the SIM7000 publishes to "location", "temperature", and "battery"
+ *  and subscribes to "command". On the Adafruit IO, open the command feed and click
+ *  the "Add Data" button and send "on" or "off" to control the LED!
  *  
  *  Author: Timothy Woo (www.botletics.com)
  *  Github: https://github.com/botletics/SIM7000-LTE-Shield
@@ -204,13 +207,13 @@ void loop() {
         Serial.print(F(" Message: ")); Serial.println(message_p);
 
         // Do something with the message
-        // For example, if the topic was "command" and we received a "yes", turn on an LED!
+        // For example, if the topic was "command" and we received "on", turn on an LED!
         if (strstr(topic_p, "command") != NULL) {
-          if (strcmp(message_p, "yes") == 0) {
+          if (strcmp(message_p, "on") == 0) {
             Serial.println(F("Turning on LED!"));
             digitalWrite(LED, HIGH);
           }
-          else if (strcmp(message_p, "no") == 0) {
+          else if (strcmp(message_p, "off") == 0) {
             Serial.println(F("Turning off LED!"));
             digitalWrite(LED, LOW);
           }
