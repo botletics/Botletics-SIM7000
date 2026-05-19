@@ -8,8 +8,8 @@
     For ESP32 please use the ESP32_LTE_Demo instead: https://github.com/botletics/SIM7000-LTE-Shield/blob/master/Code/examples/ESP32_LTE_Demo/ESP32_LTE_Demo.ino
 
     Author: Timothy Woo (www.botletics.com)
-    Github: https://github.com/botletics/SIM7000-LTE-Shield
-    Last Updated: 5/12/2025
+    Github: https://github.com/botletics/Botletics-SIM7000
+    Last Updated: 5/12/2026
     License: GNU GPL v3.0
 */
 
