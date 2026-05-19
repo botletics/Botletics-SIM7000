@@ -1,17 +1,17 @@
 /*  This example sketch is for the Botletics SIM7000/7070 shield and Arduino
- *  to publish GPS, temperature, and battery data via MQTT and read subscriptions.
- *  Default broker used in this example is Adafruit IO.
- *    
- *  Just make sure to replace credentials with your own, and change the names of the
- *  topics you want to publish or subscribe to.
- *  In this example, the SIM7000 publishes to "location", "temperature", and "battery"
- *  and subscribes to "command". On the Adafruit IO, open the command feed and click
- *  the "Add Data" button and send "on" or "off" to control the LED!
- *  
- *  Author: Timothy Woo (www.botletics.com)
- *  Github: https://github.com/botletics/SIM7000-LTE-Shield
- *  Last Updated: 5/18/2026
- *  License: GNU GPL v3.0
+    to publish GPS, temperature, and battery data via MQTT and read subscriptions.
+    Default broker used in this example is Adafruit IO.
+      
+    Just make sure to replace credentials with your own, and change the names of the
+    topics you want to publish or subscribe to.
+    In this example, the SIM7000 publishes to "location", "temperature", and "battery"
+    and subscribes to "command". On the Adafruit IO, open the command feed and click
+    the "Add Data" button and send "on" or "off" to control the LED!
+    
+    Author: Timothy Woo (www.botletics.com)
+    Github: https://github.com/botletics/SIM7000-LTE-Shield
+    Last Updated: 5/18/2026
+    License: GNU GPL v3.0
  */
 
 #include "BotleticsSIM7000.h" // https://github.com/botletics/Botletics-SIM7000/tree/main/src
