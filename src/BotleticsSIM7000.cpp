@@ -1,22 +1,4 @@
 // Adaptation of Adafruit FONA library for Botletics hardware
-// Original text below:
-
-/***************************************************
-  This is a library for our Adafruit FONA Cellular Module
-
-  Designed specifically to work with the Adafruit FONA
-  ----> http://www.adafruit.com/products/1946
-  ----> http://www.adafruit.com/products/1963
-
-  These displays use TTL Serial to communicate, 2 pins are required to
-  interface
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  BSD license, all text above must be included in any redistribution
- ****************************************************/
 
 #include "BotleticsSIM7000.h"
 
@@ -846,12 +828,13 @@ boolean Botletics_modem::sendSMS(const char *smsaddr, const char *smsmsg) {
   if ( (_type == SIM5320A) || (_type == SIM5320E) || (_type >= SIM7000) ) {
     // Eat two sets of CRLF
     readline(200);
-    //DEBUG_PRINT("Line 1: "); DEBUG_PRINTLN(strlen(replybuffer));
+    // DEBUG_PRINT("Line 1: "); DEBUG_PRINTLN(strlen(replybuffer));
     readline(200);
-    //DEBUG_PRINT("Line 2: "); DEBUG_PRINTLN(strlen(replybuffer));
+    // DEBUG_PRINT("Line 2: "); DEBUG_PRINTLN(strlen(replybuffer));
   }
   readline(30000); // read the +CMGS reply, wait up to 30s
-  //DEBUG_PRINT("Line 3: "); DEBUG_PRINTLN(strlen(replybuffer));
+  // DEBUG_PRINT("Line 3: "); DEBUG_PRINTLN(strlen(replybuffer));
+  DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer);
   if (strstr(replybuffer, "+CMGS") == 0) {
     return false;
   }
@@ -2328,7 +2311,7 @@ boolean Botletics_modem_LTE::HTTP_connect(const char *server) {
   return true;
 }
 
-boolean Botletics_modem_LTE::HTTP_GET(const char *URI) {
+boolean Botletics_modem_LTE::HTTP_GET(const char *URI, char *responseBuff, size_t maxLen) {
   // Use .HTTP_addHeader() as needed before using this function
   // Then use .HTTP_connect() to connect to the server first
   char cmdBuff[150];
@@ -2356,17 +2339,21 @@ boolean Botletics_modem_LTE::HTTP_GET(const char *URI) {
   // Read server response
   getReply(F("AT+SHREAD=0,"), datalen, 10000);
   readline(); // Eat 'OK'
-  if (_type == SIM7000) readline();
-  DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // +SHREAD: <datalen>
-  readline(10000);
-  DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // Print out server reply
+  if (_type == SIM7000) readline(); // +SHREAD: <datalen>
+  DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // Server reply
+
+  // Copy server reply to user buffer
+  if (responseBuff != NULL && maxLen > 0) {
+    strncpy(responseBuff, replybuffer, maxLen - 1);
+    responseBuff[maxLen - 1] = '\0'; // Ensure null-termination
+  }
 
   sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
 
   return true;
 }
 
-boolean Botletics_modem_LTE::HTTP_POST(const char *URI, const char *body, uint8_t bodylen) {
+boolean Botletics_modem_LTE::HTTP_POST(const char *URI, const char *body, uint8_t bodylen, char *responseBuff, size_t maxLen) {
   // Use .HTTP_addHeader() as needed before using this function
   // Then use .HTTP_connect() to connect to the server first
   char cmdBuff[150]; // Make sure this is large enough for URI
@@ -2390,8 +2377,6 @@ boolean Botletics_modem_LTE::HTTP_POST(const char *URI, const char *body, uint8_
 
   if (! sendCheckReply(cmdBuff, ok_reply, 10000)) return false;
 
-
-
   // Parse response status and size
   // Example reply --> "+SHREQ: "POST",200,452"
   uint16_t status, datalen;
@@ -2413,7 +2398,13 @@ boolean Botletics_modem_LTE::HTTP_POST(const char *URI, const char *body, uint8_
   readline();
   DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // +SHREAD: <datalen>
   readline(10000);
-  DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // Print out server reply
+  DEBUG_PRINT("\t<--- "); DEBUG_PRINTLN(replybuffer); // Server reply
+
+  // Copy server reply to user buffer
+  if (responseBuff != NULL && maxLen > 0) {
+    strncpy(responseBuff, replybuffer, maxLen - 1);
+    responseBuff[maxLen - 1] = '\0'; // Ensure null-termination
+  }
 
   sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
 
@@ -2933,11 +2924,13 @@ boolean Botletics_modem_LTE::MQTT_setParameter(const char* paramTag, const char*
 
 // Connect or disconnect MQTT
 boolean Botletics_modem_LTE::MQTT_connect(bool yesno) {
-  if (BOTLETICS_SSL) {
+  if (yesno && BOTLETICS_SSL) {
+    sendCheckReply(F("AT+SMDISC"), ok_reply); // Disconnect just in case
     sendCheckReply(F("AT+CSSLCFG=\"sslversion\",0,3"), ok_reply); // Set to TLS 1.2
     sendCheckReply(F("AT+CSSLCFG=\"ignorertctime\",0,1"), ok_reply);
     sendCheckReply(F("AT+SMSSL=1,\"\",\"\""), ok_reply); // Enable SSL without certificates
   }
+  
   if (yesno) return sendCheckReply(F("AT+SMCONN"), ok_reply, 5000);
   else return sendCheckReply(F("AT+SMDISC"), ok_reply);
 }
@@ -2951,7 +2944,7 @@ boolean Botletics_modem_LTE::MQTT_connectionStatus(void) {
 // Subscribe to specified MQTT topic
 // QoS can be from 0-2
 boolean Botletics_modem_LTE::MQTT_subscribe(const char* topic, byte QoS) {
-  char cmdStr[127];
+  char cmdStr[128];
   sprintf(cmdStr, "AT+SMSUB=\"%s\",%i", topic, QoS);
 
   if (! sendCheckReply(cmdStr, ok_reply)) return false;
@@ -2960,7 +2953,7 @@ boolean Botletics_modem_LTE::MQTT_subscribe(const char* topic, byte QoS) {
 
 // Unsubscribe from specified MQTT topic
 boolean Botletics_modem_LTE::MQTT_unsubscribe(const char* topic) {
-  char cmdStr[64];
+  char cmdStr[128];
   sprintf(cmdStr, "AT+SMUNSUB=\"%s\"", topic);
   if (! sendCheckReply(cmdStr, ok_reply)) return false;
   return true;
@@ -2971,7 +2964,7 @@ boolean Botletics_modem_LTE::MQTT_unsubscribe(const char* topic) {
 // QoS can be from 0-2
 // Server hold message flag can be 0 or 1
 boolean Botletics_modem_LTE::MQTT_publish(const char* topic, const char* message, uint16_t contentLength, byte QoS, byte retain) {
-  char cmdStr[127];
+  char cmdStr[128];
   sprintf(cmdStr, "AT+SMPUB=\"%s\",%i,%i,%i", topic, contentLength, QoS, retain);
 
   getReply(cmdStr, 2000);
