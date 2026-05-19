@@ -4,34 +4,12 @@
  *  like the ATmega32u4.
  *  
  *  Author: Timothy Woo (www.botletics.com)
- *  Github: https://github.com/botletics/SIM7000-LTE-Shield
- *  Last Updated: 11/22/2022
+ *  Github: https://github.com/botletics/Botletics-SIM7000
+ *  Last Updated: 5/18/2026
  *  License: GNU GPL v3.0
  */
 
 #include "BotleticsSIM7000.h" // https://github.com/botletics/Botletics-SIM7000/tree/main/src
-
-/******* ORIGINAL ADAFRUIT FONA LIBRARY TEXT *******/
-/***************************************************
-  This is an example for our Adafruit FONA Cellular Module
-
-  Designed specifically to work with the Adafruit FONA
-  ----> http://www.adafruit.com/products/1946
-  ----> http://www.adafruit.com/products/1963
-  ----> http://www.adafruit.com/products/2468
-  ----> http://www.adafruit.com/products/2542
-
-  These cellular modules use TTL Serial to communicate, 2 pins are
-  required to interface
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  BSD license, all text above must be included in any redistribution
- ****************************************************/
-
-// #include "Botletics_modem.h"
 
 // Define *one* of the following lines:
 #define SIMCOM_7000
@@ -40,7 +18,7 @@
 //#define SIMCOM_7600
 
 #if defined(SIMCOM_7000) || defined(SIMCOM_7070)
-  // For botletics SIM7000/7070 shield
+  // For botletics SIM7000 shield
   #define PWRKEY 6
   #define RST 7 // No RST pin for SIM7070
   //#define DTR 8 // Connect with solder jumper
@@ -249,9 +227,9 @@ void printMenu(void) {
   // The following option below posts dummy data to dweet.io for demonstration purposes. See the 
   // IoT_example sketch for an actual application of this function!
 #if defined(SIMCOM_7000) || defined(SIMCOM_7070)
-  Serial.println(F("[2] Post to dweet.io - LTE CAT-M / NB-IoT")); // SIM7000/7070
+  Serial.println(F("[2] Post to Adafruit IO - LTE CAT-M / NB-IoT")); // SIM7000/7070
 #elif defined(SIMCOM_7500) || defined(SIMCOM_7600)
-  Serial.println(F("[3] Post to dweet.io - 4G LTE (SIM7X00)")); // SIM7500/7600
+  Serial.println(F("[3] Post to Adafruit IO - 4G LTE (SIM7X00)")); // SIM7500/7600
 #endif
 
   // GPS
@@ -708,9 +686,9 @@ void loop() {
         break;
       }
 
-#if defined(SIMCOM_2G) || defined(SIMCOM_7000) || defined(SIMCOM_7070)
+#if defined(SIMCOM_7000) || defined(SIMCOM_7070)
     case '2': {
-        // Post data to website via 2G or LTE CAT-M/NB-IoT
+        // Post data to Adafruit IO
         
         float temperature = analogRead(A0)*1.23; // Change this to suit your needs
         
@@ -726,62 +704,92 @@ void loop() {
         // Format the floating point numbers as needed
         dtostrf(temperature, 1, 2, tempBuff); // float_val, min_width, digits_after_decimal, char_buffer
 
-#ifdef SIMCOM_7070 // Use this line if you have the SIM7000G because the 1529B01SIM7000G firmware doesn't seem to run the commands below well
-// #if defined(SIMCOM_7000) || defined(SIMCOM_7070) // Use this if you have SIM7000A, especially with SSL
+        #if defined(SIMCOM_7000) || defined(SIMCOM_7070) // Use this if you have SIM7000A, especially with SSL
             // Add headers as needed
-            // modem.HTTP_addHeader("User-Agent", "SIM7070", 7);
+            // modem.HTTP_addHeader("User-Agent", "SIM7000", 7);
             // modem.HTTP_addHeader("Cache-control", "no-cache", 8);
             // modem.HTTP_addHeader("Connection", "keep-alive", 10);
             // modem.HTTP_addHeader("Accept", "*/*, 3);
             
-            // Connect to server
-            // If https:// is used, #define BOTLETICS_SSL 1 in Botletics_modem.h
-            if (! modem.HTTP_connect("http://dweet.io")) {
+            // ---------- ADAFRUIT IO EXAMPLE ---------- //
+            
+            // Adafruit IO credentials
+            #define AIO_username "AIO_username"
+            #define AIO_feed     "sim7000"
+            #define AIO_key      "AIO_key"
+
+            // Connect to server (keep this for both Adafruit IO examples below)
+            if (! modem.HTTP_connect("https://io.adafruit.com")) {
               Serial.println(F("Failed to connect to server..."));
               break;
-            }
+            }            
 
-            // GET request
+            // ---------- ADAFRUIT IO HTTP(S) GET ---------- //
+            // Get the last data point that was posted
             // Format URI with GET request query string
-            sprintf(URL, "/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel);
-            modem.HTTP_GET(URL);
+            // Format: "/api/v2/{username}/feeds/{feed_key}/data/last"
+            
+            sprintf(URL, "/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
+            modem.HTTP_addHeader("x-aio-key", AIO_key, strlen(AIO_key));
+            modem.HTTP_GET(URL); // Read the last data point from your feed on Adafruit IO
 
-            // POST request
+
+            // ---------- ADAFRUIT IO HTTP(S) POST ---------- //
+            // Post new data
+            // Insert your AIO username and feed key: "/api/v2/{username}/feeds/{feed_key}/data"
             /*
-            sprintf(URL, "/dweet/for/%s", imei); // Format URI
-
-            // Format JSON body for POST request
-            // Example JSON body: "{\"temp\":\"22.3\",\"batt\":\"3800\"}"
-            sprintf(body, "{\"temp\":\"%s\",\"batt\":\"%i\"}", tempBuff, battLevel); // construct JSON body
-
-            modem.HTTP_addHeader("Content-Type", "application/json", 16);
+            sprintf(URL, "/api/v2/%s/feeds/%s/data", AIO_username, AIO_feed);
+            modem.HTTP_addHeader("x-aio-key", AIO_key, strlen(AIO_key));
+            modem.HTTP_addHeader("Content-Type", "application/x-www-form-urlencoded", 34);
+            modem.HTTP_addPara("value", tempBuff, strlen(tempBuff));
             modem.HTTP_POST(URL, body, strlen(body));
             */
 
+            // ---------- DWEET.CC EXAMPLE ---------- //
+            /*
+            // Connect to server (keep this for both dweet.cc examples below)
+            if (! modem.HTTP_connect("https://dweet.cc")) {
+              Serial.println(F("Failed to connect to server..."));
+              break;
+            }
+            */
+
+            // ---------- DWEET.CC HTTPS GET ---------- //
+            // sprintf(URL, "/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel);
+            // modem.HTTP_GET(URL);
+
+            // ---------- DWEET.CC HTTPS POST ---------- //
+            // sprintf(URL, "/dweet/for/%s", imei);
+            // sprintf(body, "{\"temp\":\"%s\",\"batt\":\"%i\"}", tempBuff, battLevel);
+            // modem.HTTP_POST(URL, body, strlen(body));
         #else
             // Construct the appropriate URL's and body, depending on request type
             // Use IMEI as device ID for this example
             
             // GET request
-            sprintf(URL, "dweet.io/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel); // No need to specify http:// or https://
-    //        sprintf(URL, "http://dweet.io/dweet/for/%s?temp=%s&batt=%i", imei, tempBuff, battLevel); // But this works too
+            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
+            modem.HTTP_para(F("x-aio-key"), F("450a3ef9db96445dac2ffe22893c4939"));
 
             if (!modem.postData("GET", URL))
               Serial.println(F("Failed to complete HTTP GET..."));
             
+            
             // POST request
             /*
-            sprintf(URL, "http://dweet.io/dweet/for/%s", imei);
-            sprintf(body, "{\"temp\":%s,\"batt\":%i}", tempBuff, battLevel);
+            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
+            sprintf(body, "{\"value\":\"%s\"}", tempBuff);
+
+            modem.HTTP_para(F("x-aio-key"), F("450a3ef9db96445dac2ffe22893c4939"));
+            modem.HTTP_para(F("Content-Type"), F("application/x-www-form-urlencoded"));
             
-            if (!modem.postData("POST", URL, body)) // Can also add authorization token parameter!
+            if (!modem.postData("POST", URL, body))
               Serial.println(F("Failed to complete HTTP POST..."));
             */
           
         #endif
 
         break;
-      }
+    }
 #endif
       
 #if defined(SIMCOM_7500) || defined(SIMCOM_7600)
