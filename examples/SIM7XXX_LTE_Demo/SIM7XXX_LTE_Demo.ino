@@ -1,12 +1,12 @@
 /*  This is an example sketch to test the core functionalities of the SIM7000/7070/7500/7600 modules.
- *  Please see the "LTE_Demo" sketch which supports many other SIMCom 2G, 3G modules; this sketch
- *  takes up less memory than the LTE_Demo sketch and is therefore suitable for microcontrollers
- *  like the ATmega32u4.
- *  
- *  Author: Timothy Woo (www.botletics.com)
- *  Github: https://github.com/botletics/Botletics-SIM7000
- *  Last Updated: 5/19/2026
- *  License: GNU GPL v3.0
+    Please see the "LTE_Demo" sketch which supports many other SIMCom 2G, 3G modules; this sketch
+    takes up less memory than the LTE_Demo sketch and is therefore suitable for microcontrollers
+    like the ATmega32u4.
+    
+    Author: Timothy Woo (www.botletics.com)
+    Github: https://github.com/botletics/Botletics-SIM7000
+    Last Updated: 5/19/2026
+    License: GNU GPL v3.0
  */
 
 #include "BotleticsSIM7000.h" // https://github.com/botletics/Botletics-SIM7000/tree/main/src
