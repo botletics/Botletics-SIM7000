@@ -54,7 +54,7 @@ Botletics_modem_LTE modem = Botletics_modem_LTE();
 
 /************************* MQTT PARAMETERS *********************************/
 #define MQTT_SERVER      "io.adafruit.com"
-#define MQTT_PORT        1883 // 8883 for SSL
+#define MQTT_PORT        1883
 #define MQTT_USERNAME    "USERNAME"
 #define MQTT_PASSWORD    "PASSWORD"
 
@@ -306,11 +306,15 @@ void loop() {
   
     // Construct a combined, comma-separated location array
     sprintf(locBuff, "%s,%s,%s,%s", speedBuff, latBuff, longBuff, altBuff); // This could look like "10,33.123456,-85.123456,120.5"
+
+    modem.MQTT_connect(false); // Just in case
     
     // If not already connected, connect to MQTT
     if (! modem.MQTT_connectionStatus()) {
       // Set up MQTT parameters (see MQTT app note for explanation of parameter values)
       modem.MQTT_setParameter("URL", MQTT_SERVER, MQTT_PORT);
+      modem.MQTT_setParameter("CLEANSS", "1"); // This prevents problems with subscribing
+
       // Set up MQTT username and password if necessary
       modem.MQTT_setParameter("CLIENTID", imei); // You need this, otherwise it may not connect
       modem.MQTT_setParameter("USERNAME", MQTT_USERNAME);
@@ -343,16 +347,16 @@ void loop() {
     if (!modem.MQTT_publish(BATT_feed, battBuff, strlen(battBuff), 1, 0)) Serial.println(F("Failed to publish!")); // Send battery level
   
     // Note the command below may error out if you're already subscribed to the topic!
-    modem.MQTT_subscribe(SUB_feed, 0); // Topic name, QoS
+    modem.MQTT_subscribe(SUB_feed, 1); // Topic name, QoS
     
     // Unsubscribe from topics if wanted:
-  //  modem.MQTT_unsubscribe(SUB_feed);
+    // modem.MQTT_unsubscribe(SUB_feed);
   
     // Enable MQTT data format to hex
-  //  modem.MQTT_dataFormatHex(true); // Input "false" to reverse
+    // modem.MQTT_dataFormatHex(true); // Input "false" to reverse
   
     // Disconnect from MQTT
-  //  modem.MQTT_connect(false);
+    // modem.MQTT_connect(false);
   
     // Delay until next post but read incoming subscribed topic messages (if any)
     Serial.print(F("Waiting for ")); Serial.print(samplingRate); Serial.println(F(" seconds\r\n"));
