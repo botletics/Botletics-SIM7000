@@ -1,33 +1,33 @@
- /* This is an example sketch to send battery, temperature, and GPS location data to
- *  the cloud via either HTTP GET and POST requests or via MQTT protocol. In this 
- *  sketch we will send to dweet.io, a free cloud API, as well as to ThingsBoard.io,
- *  a very powerful and free IoT platform that allows you to visualize data on dashboards.
- *  
- *  SETTINGS: You can choose to post only once or to post periodically
- *  by commenting/uncommenting line 57 ("#define samplingRate 30"). When this line is 
- *  commented out the AVR microcontroller and MCP9808 temperature sensor are put to 
- *  sleep to conserve power, but when the line is being used data will be sent to the
- *  cloud periodically. This makes it operate like a GPS tracker!
- *  
- *  PROTOCOL: You can use HTTP GET or POST requests and you can change the URL to pretty
- *  much anything you want. You can also use MQTT to publish data to different feeds
- *  on Adafruit IO. You can also subscribe to Adafruit IO feeds to command the device
- *  to do something! In order to select a protocol, simply uncomment a line in the #define
- *  section below!
- *  
- *  DWEET.IO: To check if the data was successfully sent to dweet, go to
- *  http://dweet.io/get/latest/dweet/for/{IMEI} and the IMEI number is printed at the
- *  beginning of the code but can also be found printed on the SIMCOM module itself.
- *  
- *  IoT Example Getting-Started Tutorial: https://github.com/botletics/SIM7000-LTE-Shield/wiki/GPS-Tracker-Example
- *  GPS Tracker Tutorial Part 1: https://www.instructables.com/id/Arduino-LTE-Shield-GPS-Tracking-Freeboardio/
- *  GPS Tracker Tutorial Part 2: https://www.instructables.com/id/LTE-Arduino-GPS-Tracker-IoT-Dashboard-Part-2/
- *  
- *  Author: Timothy Woo (www.botletics.com)
- *  Github: https://github.com/botletics/SIM7000-LTE-Shield
- *  Last Updated: 3/31/2021
- *  License: GNU GPL v3.0
-  */
+/*  This is an example sketch to send battery, temperature, and GPS location data to
+    the cloud via either HTTP GET and POST requests or via MQTT protocol. In this 
+    sketch we will send to dweet.io, a free cloud API, as well as to ThingsBoard.io,
+    a very powerful and free IoT platform that allows you to visualize data on dashboards.
+    
+    SETTINGS: You can choose to post only once or to post periodically
+    by commenting/uncommenting line 57 ("#define samplingRate 30"). When this line is 
+    commented out the AVR microcontroller and MCP9808 temperature sensor are put to 
+    sleep to conserve power, but when the line is being used data will be sent to the
+    cloud periodically. This makes it operate like a GPS tracker!
+    
+    PROTOCOL: You can use HTTP GET or POST requests and you can change the URL to pretty
+    much anything you want. You can also use MQTT to publish data to different feeds
+    on Adafruit IO. You can also subscribe to Adafruit IO feeds to command the device
+    to do something! In order to select a protocol, simply uncomment a line in the #define
+    section below!
+    
+    DWEET.IO: To check if the data was successfully sent to dweet, go to
+    http://dweet.io/get/latest/dweet/for/{IMEI} and the IMEI number is printed at the
+    beginning of the code but can also be found printed on the SIMCOM module itself.
+    
+    IoT Example Getting-Started Tutorial: https://github.com/botletics/SIM7000-LTE-Shield/wiki/GPS-Tracker-Example
+    GPS Tracker Tutorial Part 1: https://www.instructables.com/id/Arduino-LTE-Shield-GPS-Tracking-Freeboardio/
+    GPS Tracker Tutorial Part 2: https://www.instructables.com/id/LTE-Arduino-GPS-Tracker-IoT-Dashboard-Part-2/
+    
+    Author: Timothy Woo (www.botletics.com)
+    Github: https://github.com/botletics/SIM7000-LTE-Shield
+    Last Updated: 3/31/2021
+    License: GNU GPL v3.0
+*/
 
 #include "BotleticsSIM7000.h" // https://github.com/botletics/Botletics-SIM7000/tree/main/src
 
