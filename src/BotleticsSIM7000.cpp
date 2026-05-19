@@ -2311,6 +2311,10 @@ boolean Botletics_modem_LTE::HTTP_connect(const char *server) {
   return true;
 }
 
+boolean Botletics_modem_LTE::HTTP_disconnect(void) {
+  return sendCheckReply(F("AT+SHDISC"), ok_reply);
+}
+
 boolean Botletics_modem_LTE::HTTP_GET(const char *URI, char *responseBuff, size_t maxLen) {
   // Use .HTTP_addHeader() as needed before using this function
   // Then use .HTTP_connect() to connect to the server first
@@ -2348,7 +2352,7 @@ boolean Botletics_modem_LTE::HTTP_GET(const char *URI, char *responseBuff, size_
     responseBuff[maxLen - 1] = '\0'; // Ensure null-termination
   }
 
-  sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
+  // sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
 
   return true;
 }
@@ -2356,21 +2360,22 @@ boolean Botletics_modem_LTE::HTTP_GET(const char *URI, char *responseBuff, size_
 boolean Botletics_modem_LTE::HTTP_POST(const char *URI, const char *body, uint8_t bodylen, char *responseBuff, size_t maxLen) {
   // Use .HTTP_addHeader() as needed before using this function
   // Then use .HTTP_connect() to connect to the server first
-  char cmdBuff[150]; // Make sure this is large enough for URI
+  char cmdBuff[250]; // Make sure this is large enough for URI
 
-  // Example 2 in HTTP(S) app note for SIM7070 POST request
-  // if (_type == SIM7070) {
-  //   sprintf(cmdBuff, "AT+SHBOD=%i,10000", bodylen);
-  //   getReply(cmdBuff, 10000);
-  //   if (strstr(replybuffer, ">") == NULL) return false; // Wait for ">" to send message
-  //   sendCheckReply(body, ok_reply, 2000);
+  if (body != NULL) {
+    if (_type == SIM7000) {
+      sprintf(cmdBuff, "AT+SHBOD=\"%s\",%i", body, bodylen);
+      if (! sendCheckReply(cmdBuff, ok_reply, 10000)) return false;
+    }
+    else { // For ex, SIM7070
+      sprintf(cmdBuff, "AT+SHBOD=%i,10000", bodylen);
+      getReply(cmdBuff, 10000);
+      if (strstr(replybuffer, ">") == NULL) return false; // Wait for ">" to send message
+      sendCheckReply(body, ok_reply, 2000);
 
-  //   // if (! strcmp(replybuffer, "OK") != 0) return false; // Now send the JSON body
-  // }
-  // else { // For ex, SIM7000
-  //   sprintf(cmdBuff, "AT+SHBOD=\"%s\",%i", body, bodylen);
-  //   if (! sendCheckReply(cmdBuff, ok_reply, 10000)) return false;
-  // }
+      // if (! strcmp(replybuffer, "OK") != 0) return false; // Now send the JSON body
+    }
+  }
 
   memset(cmdBuff, 0, sizeof(cmdBuff)); // Clear URI char array
   sprintf(cmdBuff, "AT+SHREQ=\"%s\",3", URI);
@@ -2406,7 +2411,7 @@ boolean Botletics_modem_LTE::HTTP_POST(const char *URI, const char *body, uint8_
     responseBuff[maxLen - 1] = '\0'; // Ensure null-termination
   }
 
-  sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
+  // sendCheckReply(F("AT+SHDISC"), ok_reply, 10000); // Disconnect HTTP
 
   return true;
 }
@@ -3367,6 +3372,10 @@ boolean Botletics_modem_LTE::HTTP_addHeader(const char *type, const char *value,
   return true;
 }
 
+boolean Botletics_modem_LTE::HTTP_clearHeaders(void) {
+  return sendCheckReply(F("AT+SHCHEAD"), ok_reply);
+}
+
 boolean Botletics_modem_LTE::HTTP_addPara(const char *key, const char *value, uint16_t maxlen) {
   char cmdStr[2*maxlen+16];
 
@@ -3375,6 +3384,10 @@ boolean Botletics_modem_LTE::HTTP_addPara(const char *key, const char *value, ui
   if (! sendCheckReply(cmdStr, ok_reply, 10000))
     return false;
   return true;
+}
+
+boolean Botletics_modem_LTE::HTTP_clearParams(void) {
+  return sendCheckReply(F("AT+SHCPARA"), ok_reply);
 }
 
 /********* HTTP HIGH LEVEL FUNCTIONS ***************************/
