@@ -1,22 +1,5 @@
 // Adaptation of Adafruit FONA library for Botletics hardware
-// Original text below:
 
-/***************************************************
-  This is a library for our Adafruit FONA Cellular Module
-
-  Designed specifically to work with the Adafruit FONA
-  ----> http://www.adafruit.com/products/1946
-  ----> http://www.adafruit.com/products/1963
-
-  These displays use TTL Serial to communicate, 2 pins are required to
-  interface
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  BSD license, all text above must be included in any redistribution
- ****************************************************/
 #ifndef BOTLETICS_MODEM_H
 #define BOTLETICS_MODEM_H
 
@@ -389,8 +372,8 @@ class Botletics_modem_LTE : public Botletics_modem {
   boolean HTTP_connect(const char *server);
   boolean HTTP_addHeader(const char *type, const char *value, uint16_t maxlen); // max length of value
   boolean HTTP_addPara(const char *key, const char *value, uint16_t maxlen); // max length of value
-  boolean HTTP_GET(const char *URI);
-  boolean HTTP_POST(const char *URI, const char *body, uint8_t bodylen);
+  boolean HTTP_GET(const char *URI, char *responseBuff = NULL, size_t maxLen = 0);
+  boolean HTTP_POST(const char *URI, const char *body, uint8_t bodylen, char *responseBuff = NULL, size_t maxLen = 0);
 };
 
 #endif
