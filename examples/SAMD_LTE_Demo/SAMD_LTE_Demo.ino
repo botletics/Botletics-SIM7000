@@ -9,7 +9,7 @@
 
     Author: Timothy Woo (www.botletics.com)
     Github: https://github.com/botletics/Botletics-SIM7000
-    Last Updated: 5/18/2026
+    Last Updated: 5/19/2026
     License: GNU GPL v3.0
 */
 
@@ -973,7 +973,10 @@ void loop() {
             sprintf(URL, "/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
             modem.HTTP_addHeader("x-aio-key", AIO_key, strlen(AIO_key));
             modem.HTTP_GET(URL); // Read the last data point from your feed on Adafruit IO
-
+            
+            // Can also include buffer to parse through server response afterward
+            // modem.HTTP_GET(URL, replybuffer, sizeof(replybuffer));
+            // Serial.print(F("Server reply: ")); Serial.println(replybuffer); // Debug
 
             // ---------- ADAFRUIT IO HTTP(S) POST ---------- //
             // Post new data
@@ -984,6 +987,10 @@ void loop() {
             modem.HTTP_addHeader("Content-Type", "application/x-www-form-urlencoded", 34);
             modem.HTTP_addPara("value", tempBuff, strlen(tempBuff));
             modem.HTTP_POST(URL, body, strlen(body));
+
+            // Can also include buffer to parse through server response afterward:
+            // modem.HTTP_POST(URL, body, strlen(body), replybuffer, sizeof(replybuffer)); 
+            // Serial.print(F("Server reply: ")); Serial.println(replybuffer); // Debug
             */
 
             // ---------- DWEET.CC EXAMPLE ---------- //
