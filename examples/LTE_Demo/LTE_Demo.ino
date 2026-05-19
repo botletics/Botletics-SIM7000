@@ -1088,8 +1088,8 @@ void loop() {
             // Use IMEI as device ID for this example
             
             // GET request
-            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
-            modem.HTTP_para(F("x-aio-key"), F("450a3ef9db96445dac2ffe22893c4939"));
+            sprintf(URL, "/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
+            modem.HTTP_para(F("x-aio-key"), AIO_key);
 
             if (!modem.postData("GET", URL))
               Serial.println(F("Failed to complete HTTP GET..."));
@@ -1097,10 +1097,10 @@ void loop() {
             
             // POST request
             /*
-            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
+            sprintf(URL, "/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
             sprintf(body, "{\"value\":\"%s\"}", tempBuff);
 
-            modem.HTTP_para(F("x-aio-key"), F("450a3ef9db96445dac2ffe22893c4939"));
+            modem.HTTP_para(F("x-aio-key"), AIO_key);
             modem.HTTP_para(F("Content-Type"), F("application/x-www-form-urlencoded"));
             
             if (!modem.postData("POST", URL, body))
