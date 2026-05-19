@@ -370,10 +370,13 @@ class Botletics_modem_LTE : public Botletics_modem {
 
   // HTTP
   boolean HTTP_connect(const char *server);
+  boolean HTTP_disconnect(void);
   boolean HTTP_addHeader(const char *type, const char *value, uint16_t maxlen); // max length of value
+  boolean HTTP_clearHeaders(void);
   boolean HTTP_addPara(const char *key, const char *value, uint16_t maxlen); // max length of value
+  boolean HTTP_clearParams(void);
   boolean HTTP_GET(const char *URI, char *responseBuff = NULL, size_t maxLen = 0);
-  boolean HTTP_POST(const char *URI, const char *body, uint8_t bodylen, char *responseBuff = NULL, size_t maxLen = 0);
+  boolean HTTP_POST(const char *URI, const char *body = NULL, uint8_t bodylen = 0, char *responseBuff = NULL, size_t maxLen = 0);
 };
 
 #endif
