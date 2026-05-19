@@ -769,24 +769,29 @@ void loop() {
             // sprintf(URL, "/dweet/for/%s", imei);
             // sprintf(body, "{\"temp\":\"%s\",\"batt\":\"%i\"}", tempBuff, battLevel);
             // modem.HTTP_POST(URL, body, strlen(body));
+        #elif defined(SIMCOM_3G) || defined(SIMCOM_7500) || defined(SIMCOM_7600)
+            // Format URI with GET request query string
+            sprintf(URL, "GET /api/v2/%s/feeds/%s/data/last HTTP/1.1\r\nHost: io.adafruit.com\r\n\r\n", AIO_username, AIO_feed);
+            modem.HTTP_para(F("x-aio-key"), AIO_key); // Add headers
+
+            if (!modem.postData("GET", URL))
+              Serial.println(F("Failed to complete HTTP GET..."));
+
         #else
-            // Construct the appropriate URL's and body, depending on request type
+            // Construct the appropriate query string and/or body, depending on request type
             // Use IMEI as device ID for this example
-            
-            // GET request
-            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
-            modem.HTTP_para(F("x-aio-key"), F("450a3ef9db96445dac2ffe22893c4939"));
+            sprintf(URL, "https://io.adafruit.com/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
+            modem.HTTP_para(F("x-aio-key"), AIO_key); // Add headers
 
             if (!modem.postData("GET", URL))
               Serial.println(F("Failed to complete HTTP GET..."));
             
-            
             // POST request
             /*
-            strcpy(URL, "/api/v2/username/feeds/sim7000/data");
+            sprintf(URL, "https://io.adafruit.com/api/v2/%s/feeds/%s/data/last", AIO_username, AIO_feed);
             sprintf(body, "{\"value\":\"%s\"}", tempBuff);
 
-            modem.HTTP_para(F("x-aio-key"), F("450a3ef9db96445dac2ffe22893c4939"));
+            modem.HTTP_para(F("x-aio-key"), AIO_key); // Add headers
             modem.HTTP_para(F("Content-Type"), F("application/x-www-form-urlencoded"));
             
             if (!modem.postData("POST", URL, body))
