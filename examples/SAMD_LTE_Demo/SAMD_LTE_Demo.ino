@@ -1036,30 +1036,28 @@ void loop() {
 #if defined(SIMCOM_3G) || defined(SIMCOM_7500) || defined(SIMCOM_7600)
     case '3': {
         // Post data to website via 3G or 4G LTE
-        float temperature = analogRead(A0) * 1.23; // Change this to suit your needs
-
-        // Voltage in mV, just for testing. Use the read battery function instead for real applications.
-        uint16_t battLevel = 3700;
+        float temperature = analogRead(A0)*1.23; // Change this to suit your needs
+        
+        uint16_t battLevel;
+        if (! modem.getBattVoltage(&battLevel)) battLevel = 3800; // Use dummy voltage if can't read
 
         // Create char buffers for the floating point numbers for sprintf
         // Make sure these buffers are long enough for your request URL
         char URL[150];
         char tempBuff[16];
-        char battLevelBuff[16];
-
+      
         // Format the floating point numbers as needed
         dtostrf(temperature, 1, 2, tempBuff); // float_val, min_width, digits_after_decimal, char_buffer
-        dtostrf(battLevel, 1, 0, battLevelBuff);
 
         // Construct the appropriate URL's and body, depending on request type
         // Use IMEI as device ID for this example
-
+        
         // GET request
-        sprintf(URL, "GET /dweet/for/%s?temp=%s&batt=%s HTTP/1.1\r\nHost: dweet.io\r\n\r\n", imei, tempBuff, battLevelBuff);
-
+        sprintf(URL, "GET /dweet/for/%s?temp=%s&batt=%i HTTP/1.1\r\nHost: dweet.io\r\n\r\n", imei, tempBuff, battLevel);
+        
         if (!modem.postData("www.dweet.io", 443, "HTTPS", URL)) // Server, port, connection type, URL
           Serial.println(F("Failed to complete HTTP/HTTPS request..."));
-
+      
         break;
       }
 #endif
