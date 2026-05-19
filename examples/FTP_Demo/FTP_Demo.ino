@@ -1,17 +1,17 @@
 /*  This is a simple example sketch to send or receive files via FTP protocol. The
- *  library supports FTP connect, GET/PUT, extended GET/PUT for larger files, rename,
- *  delete, and disconnect methods.
- *  
- *  NOTE: This code is still in progress!
- *  
- *  Should work on SIMCom modules that support FTP commands: SIM800/900/7000
- *  
- *  FTP Image Transfer Tutorial: https://github.com/botletics/SIM7000-LTE-Shield/wiki/FTP-Image-Transfer-Tutorial
- *  
- *  Author: Timothy Woo (www.botletics.com)
- *  Github: https://github.com/botletics/SIM7000-LTE-Shield
- *  Last Updated: 1/7/2021
- *  License: GNU GPL v3.0
+    library supports FTP connect, GET/PUT, extended GET/PUT for larger files, rename,
+    delete, and disconnect methods.
+    
+    NOTE: This code is still in progress!
+    
+    Should work on SIMCom modules that support FTP commands: SIM800/900/7000
+    
+    FTP Image Transfer Tutorial: https://github.com/botletics/SIM7000-LTE-Shield/wiki/FTP-Image-Transfer-Tutorial
+    
+    Author: Timothy Woo (www.botletics.com)
+    Github: https://github.com/botletics/SIM7000-LTE-Shield
+    Last Updated: 1/7/2021
+    License: GNU GPL v3.0
  */
 
 #include "BotleticsSIM7000.h" // https://github.com/botletics/Botletics-SIM7000/tree/main/src
