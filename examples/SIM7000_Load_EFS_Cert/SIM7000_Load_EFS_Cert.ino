@@ -224,6 +224,8 @@ bool loadEFSCert() {
 
   if (! modem.expectReply(F("OK"))) return false;
 
+  modem.sendCheckReply(F("AT+CFSGFIS=3,\"root.pem\""), F("OK")); // Check to see if the file is actually there
+
   Serial.println(F(">>> Terminating EFS..."));
   modem.sendCheckReply(F("AT+CFSTERM"), F("OK"));
   
