@@ -1,6 +1,5 @@
-/*  This example sketch loads a global root security certificate like the
-    DigiCert Global Root G2 certificate onto the SIM7000 using its Electronic
-    File System (EFS) commands for use with HTTPS and MQTTS.
+/*  This example sketch loads a global root security certificate for Adafruit IO
+    onto the SIM7000 using its Electronic File System (EFS) commands for HTTPS/MQTTS.
     
     Author: Timothy Woo (www.botletics.com)
     Github: https://github.com/botletics/SIM7000-LTE-Shield
@@ -162,39 +161,33 @@ void moduleSetup() {
   }
 }
 
-// DigiCert Global Root G2 certificate
-uint16_t certLength = 1184;
-const char PROGMEM certData[] = 
-"-----BEGIN CERTIFICATE-----\n"
-"MIIDjjCCAnagAwIBAgIQAzrx5qcRcoqc3C+Gs9enSTANBgkqhkiG9w0BAQsFADBh\n"
+// DigiCert Global Root G2 certificate for Adafruit IO
+const char PROGMEM certData[] = "-----BEGIN CERTIFICATE-----\n"
+"MIIDjjCCAnagAwIBAgIQAzrx5qcRqaC7KGSxHQn65TANBgkqhkiG9w0BAQsFADBh\n"
 "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n"
-"b3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBH\n"
-"MjAeFw0zMDA4MDExMjAwMDBaFw00MzA4MDExMjAwMDBaMGExCzAJBgNVBAYTAlVT\n"
+"d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBH\n"
+"MjAeFw0xMzA4MDExMjAwMDBaFw0zODAxMTUxMjAwMDBaMGExCzAJBgNVBAYTAlVT\n"
 "MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j\n"
 "b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IEcyMIIBIjANBgkqhkiG\n"
-"9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1EQm4quk8aaVAwURxrtUtKU\n"
-"9E6lCofZl7GcI/qnUqfKzSBz6cgHB2MlyGdFI89gKa4XQGg9sWqg9H5M96cKMC8E\n"
-"7e6Q3yO8wT64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8S\n"
-"veA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5\n"
-"R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1\n"
-"+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8Sve\n"
-"A64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R\n"
-"9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+\n"
-"oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA\n"
-"64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o\n"
-"65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN\n"
-"8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64\n"
-"K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65\n"
-"R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8S\n"
-"veA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5\n"
-"R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1\n"
-"+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8Sve\n"
-"A64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R\n"
-"9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o65R1+oN8SveA64K5R9o64==\n"
+"9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuzfNNNx7a8myaJCtSnX/RrohCgiN9RlUyfuI\n"
+"2/Ou8jqJkTx65qsGGmvPrC3oXgkkRLpimn7Wo6h+4FR1IAWsULecYxpsMNzaHxmx\n"
+"1x7e/dfgy5SDN67sH0NO3Xss0r0upS/kqbitOtSZpLYl6ZtrAGCSYP9PIUkY92eQ\n"
+"q2EGnI/yuum06ZIya7XzV+hdG82MHauVBJVJ8zUtluNJbd134/tJS7SsVQepj5Wz\n"
+"tCO7TG1F8PapspUwtP1MVYwnSlcUfIKdzXOS0xZKBgyMUNGPHgm+F6HmIcr9g+UQ\n"
+"vIOlCsRnKPZzFBQ9RnbDhxSJITRNrw9FDKZJobq7nMWxM4MphQIDAQABo0IwQDAP\n"
+"BgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBhjAdBgNVHQ4EFgQUTiJUIBiV\n"
+"5uNu5g/6+rkS7QYXjzkwDQYJKoZIhvcNAQELBQADggEBAGBnKJRvDkhj6zHd6mcY\n"
+"1Yl9PMWLSn/pvtsrF9+wX3N3KjITOYFnQoQj8kVnNeyIv/iPsGEMNKSuIEyExtv4\n"
+"NeF22d+mQrvHRAiGfzZ0JFrabA0UWTW98kndth/Jsw1HKj2ZL7tcu7XUIOGZX1NG\n"
+"Fdtom/DzMNU+MeKNhJ7jitralj41E6Vf8PlwUHBHQRFXGU7Aj64GxJUTFy8bJZ91\n"
+"8rGOmaFvE7FBcf6IKshPECBV1/MUReXgRPTqh5Uykw7+U0b6LJ3/iyK5S9kJRaTe\n"
+"pLiaWN0bfVKfjllDiIGknibVb63dDcY3fe0Dkhvld1927jyNxF1WW6LZZm6zNTfl\n"
+"MrY=\n"
 "-----END CERTIFICATE-----";
 
 bool loadEFSCert() {
   char cmdBuff[100];
+  uint16_t certLength = sizeof(certData) - 1;
 
   Serial.println(F(">>> Initialize EFS..."));
   modem.sendCheckReply(F("AT+CFSINIT"), F("OK")); // Will give ERROR if already initiated previously
