@@ -2286,6 +2286,7 @@ boolean Botletics_modem_LTE::HTTP_connect(const char *server) {
 
   if (BOTLETICS_SSL) {
     sendCheckReply(F("AT+SHSSL=1,\"\""), ok_reply, 10000); // Use SSL but trust all certificates
+    // sendCheckReply(F("AT+SHSSL=1,\"root.pem\""), ok_reply, 10000);
   }
 
   // Set max HTTP body length
@@ -2934,6 +2935,12 @@ boolean Botletics_modem_LTE::MQTT_connect(bool yesno) {
     sendCheckReply(F("AT+CSSLCFG=\"sslversion\",0,3"), ok_reply); // Set to TLS 1.2
     sendCheckReply(F("AT+CSSLCFG=\"ignorertctime\",0,1"), ok_reply);
     sendCheckReply(F("AT+SMSSL=1,\"\",\"\""), ok_reply); // Enable SSL without certificates
+    // Test code for MQTTS:
+    // sendCheckReply(F("AT+CSSLCFG=\"ciphersuite\",1,0,0X0035"), ok_reply); // Test
+    // sendCheckReply(F("AT+CSSLCFG=\"ciphersuite\",1,0,0x002F"), ok_reply);
+    // sendCheckReply(F("AT+CSSLCFG=\"sni\",0,\"io.adafruit.com\""), ok_reply); // Test
+    // sendCheckReply(F("AT+CSSLCFG=\"convert\",2,\"root.pem\""), ok_reply); // Should have been done already in EFS write
+    // sendCheckReply(F("AT+SMSSL=1,\"root.pem\",\"\""), ok_reply); // Test
   }
   
   if (yesno) return sendCheckReply(F("AT+SMCONN"), ok_reply, 5000);
