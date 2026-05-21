@@ -1001,10 +1001,10 @@ void loop() {
             modem.HTTP_addHeader("x-aio-key", AIO_key, strlen(AIO_key));
             modem.HTTP_addHeader("Content-Type", "application/x-www-form-urlencoded", 34);
             modem.HTTP_addPara("value", tempBuff, strlen(tempBuff));
-            modem.HTTP_POST(URL, body, strlen(body));
+            modem.HTTP_POST(URL);
 
             // Can also include buffer to parse through server response afterward:
-            // modem.HTTP_POST(URL, body, strlen(body), replybuffer, sizeof(replybuffer)); 
+            // modem.HTTP_POST(URL, replybuffer, sizeof(replybuffer)); 
             // Serial.print(F("Server reply: ")); Serial.println(replybuffer); // Debug
             */
 
