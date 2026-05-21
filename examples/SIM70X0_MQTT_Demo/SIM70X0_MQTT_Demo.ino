@@ -10,7 +10,7 @@
     
     Author: Timothy Woo (www.botletics.com)
     Github: https://github.com/botletics/SIM7000-LTE-Shield
-    Last Updated: 5/18/2026
+    Last Updated: 5/21/2026
     License: GNU GPL v3.0
  */
 
@@ -163,11 +163,7 @@ void setup() {
   modem.setNetLED(false); // Disable network status LED
   */
 
-  // Perform first-time GPS/data setup if the shield is going to remain on,
-  // otherwise these won't be enabled in loop() and it won't work!
-  // Disable data then enable to start with clean connection
-  modem.enableGPRS(false);
-  delay(1000);
+  // Perform first-time GPS/data setup
   modem.enableGPRS(true);
   delay(1000);
 
